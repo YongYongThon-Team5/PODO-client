@@ -1,0 +1,140 @@
+/* Figma "wireframe" 디자인 값 (프레임 기준 402 x 874) */
+:root {
+  --color-primary: #ff903d;
+  --color-primary-soft: #ffefe4;
+  --color-brown: #4f2c02;
+  --color-gray-100: #eef1f4;
+  --color-gray-300: #d5dae0;
+  --color-gray-500: #6b7280;
+  --color-icon: #505050;
+  --color-kakao: #fee500;
+  --color-kakao-text: #190e00;
+  --color-login-sub: #7a7566;
+  --color-login-guest: #b7b1a9;
+  --color-desktop-bg: #f7f1ea;
+
+  --font-noto: 'Noto Sans KR', sans-serif;
+  --font-pretendard: 'Pretendard', 'Noto Sans KR', sans-serif;
+
+  --app-max-width: 430px;
+  --gnb-height: 70px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* 브라우저가 실제로 보여주는 높이 (주소창 제외) */
+  --vh: 100vh;
+  /* 앱 화면 높이: 휴대폰은 화면 전체, PC는 아래에서 카드 높이로 바꿈 */
+  --app-h: var(--vh);
+  /* 디자인 높이 874px 대비 앱 화면 높이 비율. 이미지를 화면에 맞춰 줄일 때 사용 */
+  --u: calc(var(--app-h) / 874);
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --vh: 100dvh;
+  }
+}
+
+/* PC·태블릿: 앱을 디자인 크기(402 x 874)의 카드로 가운데 띄움. 창이 낮으면 카드 높이만 줄어듦 */
+@media (min-width: 768px) {
+  :root {
+    --app-h: min(874px, calc(var(--vh) - 64px));
+    --safe-bottom: 0px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-noto);
+  background: #ffffff;
+  color: var(--color-brown);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+img {
+  display: block;
+}
+
+.app-shell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+}
+
+.app-frame {
+  position: relative;
+  width: 100%;
+  max-width: var(--app-max-width);
+  height: var(--app-h);
+}
+
+@media (min-width: 768px) {
+  body {
+    background:
+      radial-gradient(900px 600px at 15% 20%, rgba(248, 156, 81, 0.1), transparent 70%),
+      radial-gradient(900px 700px at 85% 85%, rgba(248, 156, 81, 0.12), transparent 70%),
+      var(--color-desktop-bg);
+  }
+
+  .app-shell {
+    padding: 32px 0;
+  }
+
+  .app-frame {
+    width: 402px;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow:
+      0 24px 60px rgba(79, 44, 2, 0.12),
+      0 0 0 1px rgba(79, 44, 2, 0.04);
+  }
+}
+
+/* 모든 화면 공통: 앱 화면 높이를 꽉 채우는 세로 배치 */
+.screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+@keyframes screen-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.screen-fade-in {
+  animation: screen-fade-in 450ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen-fade-in {
+    animation: none;
+  }
+}

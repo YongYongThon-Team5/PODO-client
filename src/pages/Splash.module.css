@@ -1,0 +1,29 @@
+/* Figma "스플래시": 여우 246, 인사 398, 로고 424, 슬로건 479 (위아래 여백은 Spacer) */
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.fox {
+  height: min(150px, calc(150 * var(--u)));
+  width: auto;
+}
+
+.hello {
+  margin-top: 2px;
+  font-size: 10px;
+  line-height: 12px;
+  color: var(--color-gray-500);
+}
+
+.logo {
+  margin-top: 14px;
+}
+
+.slogan {
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 16px;
+  color: var(--color-gray-500);
+}
