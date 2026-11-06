@@ -1,0 +1,81 @@
+/* Figma "😀로그인": 로고 331, 문구 401, 여우 578~753, 카카오 735, 둘러보기 814 */
+.background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.brand {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tagline {
+  margin-top: 12px;
+  font-family: var(--font-pretendard);
+  font-size: 17px;
+  line-height: 30px;
+  text-align: center;
+  color: var(--color-login-sub);
+}
+
+/* Figma 레이어 순서대로 여우가 카카오 버튼 위로 18px 겹침 */
+.foxWrap {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  align-self: center;
+  margin-bottom: -18px;
+  pointer-events: none;
+}
+
+.fox {
+  position: relative;
+  height: min(175px, calc(175 * var(--u)));
+  width: auto;
+}
+
+/* 여우 발밑 그림자: 74 x 9, 여우 아래끝에서 10px 위, 가운데에서 1px 왼쪽 */
+.foxShadow {
+  position: absolute;
+  left: calc(50% - 38px);
+  bottom: 10px;
+  width: 74px;
+  height: 9px;
+  background: radial-gradient(closest-side, #49403a, rgba(255, 255, 254, 0));
+}
+
+.actions {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 28px calc(42px + var(--safe-bottom));
+}
+
+.kakao {
+  width: 100%;
+  height: 54px;
+  border-radius: 10px;
+  background: var(--color-kakao);
+  color: var(--color-kakao-text);
+  font-family: var(--font-pretendard);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.guest {
+  margin-top: 25px;
+  font-family: var(--font-pretendard);
+  font-size: 15px;
+  line-height: 18px;
+  white-space: nowrap;
+  color: var(--color-login-guest);
+}
