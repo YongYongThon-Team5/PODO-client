@@ -1,0 +1,74 @@
+/* Figma "위치 권한 안내": 원 114, 제목 261, 부제 299, 안내 상자 359, 지역 안내 518, 칩 544, 버튼 604 */
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  padding: 114px 30px 0;
+  color: var(--color-brown);
+}
+
+.pinCircle {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 111px;
+  height: 111px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+}
+
+.title {
+  margin-top: 36px;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 23px;
+  text-align: center;
+}
+
+.sub {
+  margin-top: 15px;
+  font-size: 13px;
+  line-height: 16px;
+  text-align: center;
+}
+
+/* Figma 11.09: 342x136 (359), 모서리 10, 글머리 없이 줄 간격 30 */
+.notice {
+  margin-top: 44px;
+  padding: 23px 30px;
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+  list-style: none;
+  font-size: 13px;
+  line-height: 30px;
+  color: #1f2933;
+}
+
+.hint {
+  margin-top: 23px;
+  padding-left: 10px;
+  font-size: 12px;
+  line-height: 14px;
+  color: var(--color-gray-500);
+}
+
+.districts {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.bottom {
+  flex: none;
+  margin-top: auto;
+  padding: 28px 0 38px;
+}

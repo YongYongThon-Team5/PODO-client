@@ -1,0 +1,43 @@
+.header {
+  flex: none;
+  padding-top: 44.5px;
+}
+
+.bar {
+  position: relative;
+  height: 50px;
+}
+
+/* 아이콘 24,60.5 (9x18) → 바 안 위치 24,16. 터치 영역은 넓게 */
+.back {
+  position: absolute;
+  left: 12px;
+  top: 4px;
+  width: 33px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  position: absolute;
+  top: 13px;
+  left: 56px;
+  right: 56px;
+  font-family: var(--font-pretendard);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 24px;
+  text-align: center;
+  color: var(--color-brown);
+}
+
+/* "+ 아이 추가하기": y 97, 오른쪽 끝 371 */
+.action {
+  display: flex;
+  justify-content: flex-end;
+  height: 16px;
+  margin-top: 2.5px;
+  padding-right: 31px;
+}

@@ -13,12 +13,14 @@
   --color-login-guest: #b7b1a9;
   --color-desktop-bg: #f7f1ea;
 
-  --font-noto: 'Noto Sans KR', sans-serif;
-  --font-pretendard: 'Pretendard', 'Noto Sans KR', sans-serif;
+  /* Figma 11.09: 전체 Pretendard로 통일 */
+  --font-pretendard: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
 
   --app-max-width: 430px;
-  --gnb-height: 70px;
+  --gnb-height: 68px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* GNB 아래 홈 바 영역. Figma는 34px 흰 영역(아이폰 홈 바)을 포함한다 */
+  --gnb-bottom: env(safe-area-inset-bottom, 0px);
 
   /* 브라우저가 실제로 보여주는 높이 (주소창 제외) */
   --vh: 100vh;
@@ -39,6 +41,8 @@
   :root {
     --app-h: min(874px, calc(var(--vh) - 64px));
     --safe-bottom: 0px;
+    /* PC 카드는 아이폰처럼 보여주므로 Figma와 같은 홈 바 영역을 둔다 */
+    --gnb-bottom: 34px;
   }
 }
 
@@ -57,7 +61,7 @@ body,
 }
 
 body {
-  font-family: var(--font-noto);
+  font-family: var(--font-pretendard);
   background: #ffffff;
   color: var(--color-brown);
   -webkit-font-smoothing: antialiased;
@@ -121,6 +125,15 @@ img {
   height: 100%;
   overflow: hidden;
   background: #ffffff;
+}
+
+/* 앱 안 스크롤 영역은 휴대폰처럼 스크롤바가 폭을 차지하지 않게 */
+.screen * {
+  scrollbar-width: none;
+}
+
+.screen *::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes screen-fade-in {

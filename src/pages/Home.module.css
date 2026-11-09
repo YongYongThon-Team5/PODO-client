@@ -1,0 +1,229 @@
+/*
+ * Figma "홈": 그라데이션 0~176 → 검색 카드 138(38px 겹침)~355 → 회색 구분선 360~366
+ *            → 방문 예정 387 / 카드 425 → 인기 탐험지 526 / 칩 564 / 사진 608
+ */
+.screen {
+  background: #fefcfa;
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.hero {
+  height: 176px;
+  padding: 79px 34px 0;
+  background: linear-gradient(90deg, #cbc8c8, #ff903d);
+}
+
+.greeting {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 23px;
+  color: var(--color-brown);
+}
+
+/* 회색 구분선(6px)은 아래 테두리로 */
+.searchArea {
+  padding: 0 20px 5px;
+  border-bottom: 6px solid #cbc8c8;
+  background: #fefcfa;
+}
+
+.searchCard {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: -38px;
+  padding: 26px 13px 22px 23px;
+  border-radius: 10px 10px 0 0;
+  background: #fefcfa;
+  text-align: left;
+  color: #5c4300;
+}
+
+.searchTitle {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.searchSub {
+  margin-top: 18px;
+  font-size: 12px;
+  line-height: 14px;
+}
+
+.weekend {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  margin-top: 36px;
+  margin-left: -10px;
+  padding: 12px 16px 11px;
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+  color: var(--color-brown);
+}
+
+.weekendTitle {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 17px;
+}
+
+.weekendSub {
+  font-size: 12px;
+  line-height: 14px;
+}
+
+.lower {
+  padding: 21px 30px 28px 29px;
+}
+
+.sectionTitle {
+  padding-left: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 18px;
+  color: var(--color-brown);
+}
+
+/* 방문 예정 카드: 343x80, 테두리 #d5dae0, 모서리 14 */
+.visitCard {
+  display: flex;
+  align-items: center;
+  height: 80px;
+  margin-top: 20px;
+  padding: 0 14px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--color-brown);
+}
+
+.visitEmpty {
+  justify-content: center;
+  font-size: 12px;
+  line-height: 14px;
+  color: var(--color-gray-500);
+}
+
+.visitThumb {
+  flex: none;
+  display: block;
+  width: 76px;
+  height: 46.6px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #f3ece4;
+}
+
+.visitInfo {
+  min-width: 0;
+  margin-left: 12.5px;
+}
+
+.visitName {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.visitSub {
+  margin-top: 9px;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.popular {
+  margin-top: 21px;
+}
+
+.popularHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.popularCount {
+  padding-right: 10px;
+  font-size: 12px;
+  line-height: 14px;
+  color: var(--color-brown);
+}
+
+.categories {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+/* 사진 109x86, 간격 9. 15곳까지 옆으로 넘김 */
+.places {
+  display: flex;
+  gap: 9px;
+  margin: 12px -30px 0 0;
+  padding-right: 30px;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.places::-webkit-scrollbar {
+  display: none;
+}
+
+.place {
+  flex: none;
+  width: 109px;
+  text-align: center;
+  color: var(--color-brown);
+}
+
+.placeThumb {
+  display: block;
+  width: 109px;
+  height: 86px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f3ece4;
+}
+
+.placeName {
+  margin-top: 18px;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.placeSub {
+  margin-top: 5px;
+  font-size: 11px;
+  line-height: 13px;
+}
+
+.placesEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 136px;
+  margin-top: 12px;
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  color: var(--color-brown);
+}

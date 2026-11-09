@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import Spacer from '../components/Spacer';
+import { startKakaoLogin } from '../api/auth';
 import background from '../assets/login-bg.jpg';
 import fox from '../assets/fox-wave.png';
 import logo from '../assets/logo-login.svg';
@@ -7,11 +8,6 @@ import styles from './Login.module.css';
 
 export default function Login() {
   const navigate = useNavigate();
-
-  const loginWithKakao = () => {
-    // TODO: 카카오 OAuth 연동 (백엔드 로그인 API 확정 후)
-    navigate('/signup');
-  };
 
   return (
     <main className="screen screen-fade-in">
@@ -34,7 +30,7 @@ export default function Login() {
       </div>
 
       <div className={styles.actions}>
-        <button type="button" className={styles.kakao} onClick={loginWithKakao}>
+        <button type="button" className={styles.kakao} onClick={startKakaoLogin}>
           카카오로 3초 만에 시작하기
         </button>
         <button type="button" className={styles.guest} onClick={() => navigate('/home')}>

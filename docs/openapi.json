@@ -1,0 +1,3775 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PODO API",
+    "description": "PODO 백엔드 API 문서",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/api/visits/{visitId}/hint-views/{questionId}/{step}": {
+      "put": {
+        "tags": [
+          "퀴즈"
+        ],
+        "summary": "힌트 열람·중복 없는 기록",
+        "description": "정상 완료 후에는 기존에 열람한 단계만\n다시 조회할 수 있다.\n",
+        "operationId": "viewHint",
+        "parameters": [
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "step",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "enum": [
+                "1",
+                "2"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "힌트 본문",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizHintResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "본인 방문·현재 문항이 아님",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "상태·퀴즈 준비·콘텐츠 정정·장소 이용 불가",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{visitId}/answers/{questionId}": {
+      "put": {
+        "tags": [
+          "퀴즈"
+        ],
+        "summary": "OX 답안 제출·채점",
+        "description": "첫 답안 불변.\n서로 다른 3문항 응답과 방문 완료를 원자 처리한다.\n정답 수는 완료 조건이 아니다.\n",
+        "operationId": "submitAnswer",
+        "parameters": [
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitQuizAnswer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "저장된 채점 결과",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizAnswerResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "본인 방문·현재 문항이 아님",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "상태·퀴즈 준비·콘텐츠 정정·장소 이용 불가",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/visits": {
+      "get": {
+        "tags": [
+          "방문"
+        ],
+        "summary": "내 방문 목록",
+        "description": "createdAt DESC, id DESC.\n필터를 바꾸면 커서 없이 새 조회한다.\n",
+        "operationId": "listVisits",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "쉼표 구분:\nPLANNED,QUIZ_IN_PROGRESS,COMPLETED,CANCELLED\n"
+          },
+          {
+            "name": "placeId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "본인 방문 목록",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorResponseVisit"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력·날짜·커서 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "없거나 본인 소유가 아닌 리소스",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "활성 방문·요청 키·상태·장소 이용 불가",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "방문"
+        ],
+        "summary": "방문 예정 등록",
+        "description": "계정당 활성 방문 1건.\n최초 등록 201, 동일 키·동일 요청 재전송 200.\n아이 선택은 필수가 아니다.\n",
+        "operationId": "createVisit",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 8
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVisit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "같은 요청 재전송",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Visit"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "생성",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Visit"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력·날짜·커서 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "없거나 본인 소유가 아닌 리소스",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "활성 방문·요청 키·상태·장소 이용 불가",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{visitId}/report": {
+      "post": {
+        "tags": [
+          "퀴즈"
+        ],
+        "summary": "방문 신고와 준비된 퀴즈 시작",
+        "description": "AI 호출 없음. 준비된 세트만 연결한다.\n재전송은 현재 방문 반환.\n위치 인증을 수행하지 않는다.\n",
+        "operationId": "reportVisit",
+        "parameters": [
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "방문 현재 상태",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Visit"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "본인 방문·현재 문항이 아님",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "상태·퀴즈 준비·콘텐츠 정정·장소 이용 불가",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{visitId}/quiz/restart": {
+      "post": {
+        "tags": [
+          "퀴즈"
+        ],
+        "summary": "오류 세트를 정정된 버전으로 교체",
+        "description": "같은 장소·같은 관찰 범위의 상위 공개 버전만 연결한다.\n과거 답안·힌트·최초 시작 시각을 보존한다.\n",
+        "operationId": "restartQuiz",
+        "parameters": [
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "현재 퀴즈 진행",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizProgress"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "본인 방문·현재 문항이 아님",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "상태·퀴즈 준비·콘텐츠 정정·장소 이용 불가",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{visitId}/cancel": {
+      "post": {
+        "tags": [
+          "방문"
+        ],
+        "summary": "방문 예정 취소",
+        "description": "PLANNED에서 취소.\n이미 CANCELLED이면 기존 결과 반환.\n요청 본문 없음.\n",
+        "operationId": "cancelVisit",
+        "parameters": [
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "취소 결과",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Visit"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력·날짜·커서 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "없거나 본인 소유가 아닌 리소스",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "활성 방문·요청 키·상태·장소 이용 불가",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/recommendations": {
+      "post": {
+        "tags": [
+          "추천과 인기"
+        ],
+        "summary": "맞춤 장소 최대 5곳",
+        "description": "목적 하나와 방문 날짜가 필수다. childProfileId 누락/null은 프로필 없음. 비로그인으로 프로필 ID를 보내면 401, 타인 프로필은 404. 서버가 날씨를 조회해 비 예보면 야외 장소를 제외하고 흐림은 야외 감점한다. 부족하면 실제 후보만 반환한다.",
+        "operationId": "recommend",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecommendationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "추천 결과",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력·날짜·선택 코드 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "프로필 ID를 보냈는데 로그인하지 않았거나 토큰이 무효",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "본인 프로필이 아니거나 없음",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/profile-images": {
+      "post": {
+        "tags": [
+          "아이 프로필"
+        ],
+        "summary": "프로필 사진 업로드",
+        "description": "JPEG, PNG, WebP를 5 MiB, 16,777,216픽셀, 가로·세로 각각 16,384픽셀 이하로 받아 저장합니다.",
+        "operationId": "uploadProfileImage",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadRequest"
+              },
+              "encoding": {
+                "file": {
+                  "contentType": "image/jpeg, image/png, image/webp"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "프로필 사진 생성",
+            "headers": {
+              "Cache-Control": {
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-Id": {
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileImageCreated"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 멀티파트 요청",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "파일 크기 또는 픽셀 수 한도 초과",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "지원하지 않는 사진 형식",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "사진 저장소 이용 불가",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/child-profiles": {
+      "get": {
+        "tags": [
+          "아이 프로필"
+        ],
+        "summary": "내 아이 프로필 목록",
+        "description": "createdAt ASC, id ASC. 커서는 이전 응답 값을 그대로 전달한다.",
+        "operationId": "list",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "본인 프로필 목록",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorResponseChildProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력·선택 코드·커서 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "운영 목록 미설정",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "아이 프로필"
+        ],
+        "summary": "아이 프로필 생성",
+        "operationId": "create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateChildProfile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "프로필 생성",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChildProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력·선택 코드·커서 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "본인 사진이 아니거나 없음",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "COLOR_ALREADY_USED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "운영 목록 미설정",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/token": {
+      "post": {
+        "tags": [
+          "인증"
+        ],
+        "summary": "Access 토큰 발급·갱신",
+        "description": "본문 없이 Refresh 쿠키와 CSRF를 전송한다. Refresh는 매번 회전한다.",
+        "operationId": "token",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "RefreshCookie": []
+          }
+        ]
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": [
+          "인증"
+        ],
+        "summary": "현재 로그인 종료",
+        "description": "현재 Bearer 세션과 연결 토큰을 폐기한다. Refresh 쿠키는 선택이다.",
+        "operationId": "logout",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{visitId}": {
+      "get": {
+        "tags": [
+          "방문"
+        ],
+        "summary": "내 방문 상세·상태 조회",
+        "operationId": "getVisit",
+        "parameters": [
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "방문 상세",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Visit"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력·날짜·커서 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "없거나 본인 소유가 아닌 리소스",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "활성 방문·요청 키·상태·장소 이용 불가",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "방문"
+        ],
+        "summary": "방문 예정일 변경",
+        "description": "PLANNED에서 날짜만 변경한다.",
+        "operationId": "changeVisitDate",
+        "parameters": [
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchVisit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "예정일 변경",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Visit"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력·날짜·커서 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "없거나 본인 소유가 아닌 리소스",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "활성 방문·요청 키·상태·장소 이용 불가",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/child-profiles/{profileId}": {
+      "patch": {
+        "tags": [
+          "아이 프로필"
+        ],
+        "summary": "아이 프로필 수정",
+        "description": "생략은 유지하고, 연령·사진의 null은 해제하며 배열은 전체 교체한다.",
+        "operationId": "patch",
+        "parameters": [
+          {
+            "name": "profileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchChildProfile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "프로필 수정",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChildProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력·선택 코드·커서 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "본인 프로필·사진이 아니거나 없음",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "COLOR_ALREADY_USED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "운영 목록 미설정",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{visitId}/quiz": {
+      "get": {
+        "tags": [
+          "퀴즈"
+        ],
+        "summary": "현재 퀴즈와 진행 조회",
+        "description": "미응답 문항의 정답·해설과\n미열람 힌트 본문은 제공하지 않는다.\n",
+        "operationId": "getQuiz",
+        "parameters": [
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "퀴즈 진행",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizProgress"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "본인 방문·현재 문항이 아님",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "상태·퀴즈 준비·콘텐츠 정정·장소 이용 불가",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/recommendation-options": {
+      "get": {
+        "tags": [
+          "선택 목록"
+        ],
+        "summary": "목적·지역·실내외 선호 목록",
+        "description": "단일 선택할 목적 코드, 지역 코드와 실내외 선호 INDOOR/OUTDOOR/ANY를 반환한다. 새 요청에는 활성 코드만 허용한다. 실내외는 순위 선호이며 강제 제외 필터가 아니다.",
+        "operationId": "getOptions",
+        "responses": {
+          "200": {
+            "description": "추천 선택 목록",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendationOptions"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "정의되지 않은 쿼리 또는 본문",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "전달한 Bearer가 유효하지 않음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "OPTIONS_NOT_CONFIGURED: 목적 운영 목록 미설정",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/profile-options": {
+      "get": {
+        "tags": [
+          "선택 목록"
+        ],
+        "summary": "프로필 선택 목록과 사진 규격",
+        "description": "비활성 항목도 기존 선택 표시를 위해 반환한다. 필수 운영 목록이 없으면 503이다.",
+        "operationId": "getOptions_1",
+        "responses": {
+          "200": {
+            "description": "프로필 선택 목록과 확정된 정책",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOptions"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "정의되지 않은 쿼리 또는 본문",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "전달한 Bearer가 유효하지 않음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "OPTIONS_NOT_CONFIGURED: 운영 목록 미설정",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/profile-images/{imageId}": {
+      "get": {
+        "tags": [
+          "아이 프로필"
+        ],
+        "summary": "내 프로필 사진 조회",
+        "operationId": "readProfileImage",
+        "parameters": [
+          {
+            "name": "imageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "본인 프로필 사진",
+            "headers": {
+              "Cache-Control": {
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-Id": {
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "사진이 없거나 본인 소유가 아님",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "사진 저장소 이용 불가",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/places": {
+      "get": {
+        "tags": [
+          "장소"
+        ],
+        "summary": "공개 장소 목록·지도 조회",
+        "description": "PUBLISHED 장소만 name ASC, id ASC로 조회한다. bbox 또는 지역 필터를 바꾸면 cursor를 초기화한다.",
+        "operationId": "list_1",
+        "parameters": [
+          {
+            "name": "bbox",
+            "in": "query",
+            "description": "minLongitude,minLatitude,maxLongitude,maxLatitude"
+          },
+          {
+            "name": "districtCode",
+            "in": "query",
+            "description": "선택 지역 코드 (CHEOIN, GIHEUNG, SUJI)"
+          },
+          {
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "공개 장소 목록",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CursorResponsePlaceSummary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력·날짜·커서 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "전달한 Bearer가 유효하지 않음",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/places/{placeId}": {
+      "get": {
+        "tags": [
+          "장소"
+        ],
+        "summary": "공개 장소 상세",
+        "description": "상세 조회만으로 방문을 만들지 않는다. 비공개 장소는 404. visitDate가 없으면 weather=null, 조회 실패면 UNKNOWN.",
+        "operationId": "detail",
+        "parameters": [
+          {
+            "name": "visitDate",
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "placeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "장소 상세",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력·날짜·커서 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "전달한 Bearer가 유효하지 않음",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "없거나 비공개인 장소",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/places/popular": {
+      "get": {
+        "tags": [
+          "추천과 인기"
+        ],
+        "summary": "전체 인기 상위 15곳",
+        "description": "방문 신고(reportedAt)가 있는 방문을 공개 장소별 서로 다른 계정 수로 집계한다. 계정 수 DESC, 이름 COLLATE C ASC, id ASC로 최대 15곳. 기록이 없으면 items=[]와 COLLECTING.",
+        "operationId": "popular",
+        "responses": {
+          "200": {
+            "description": "인기 장소",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PopularResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "정의되지 않은 쿼리 또는 본문",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "전달한 Bearer가 유효하지 않음",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/me": {
+      "get": {
+        "tags": [
+          "인증"
+        ],
+        "summary": "내 계정 조회",
+        "operationId": "me",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/me/completed-places": {
+      "get": {
+        "tags": [
+          "완료 지도"
+        ],
+        "summary": "가족 공통 완료 지도",
+        "description": "계정의 COMPLETED 방문을 장소별로 묶는다.\nlastCompletedAt DESC, placeId DESC.\nsummary는 계정 전체 완료 장소 집계다.\n아이 색상과 장소 정보는 현재 값을 사용한다.\n장소 비공개·퀴즈 정정 후에도 완료 기록을 유지한다.\nasOf 이후 완료 기록은 다음 새 조회에서 반영한다.\n비공개 장소에 좌표가 없으면 null이며 프론트는 마커 표시를 생략한다.\n",
+        "operationId": "getCompletedPlaces",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "이전 응답의 nextCursor. 최초 조회에서는 생략한다.",
+            "schema": {
+              "type": "string",
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "완료 장소 목록",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompletedPlacePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력 또는 커서 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 필요",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/login/kakao": {
+      "get": {
+        "tags": [
+          "인증"
+        ],
+        "summary": "카카오 로그인 시작",
+        "description": "브라우저에서 이동하면 카카오 인가 화면으로 리다이렉트한다.",
+        "operationId": "login",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/auth/csrf": {
+      "get": {
+        "tags": [
+          "인증"
+        ],
+        "summary": "CSRF 토큰 조회",
+        "description": "선택 Bearer 또는 Refresh 세션에 결합한다. 둘 다 없으면 익명 토큰을 발급한다.",
+        "operationId": "csrf",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CsrfResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/callback/kakao": {
+      "get": {
+        "tags": [
+          "인증"
+        ],
+        "summary": "카카오 로그인 콜백",
+        "description": "등록된 콜백 전용이며 성공·오류 화면으로 이동한다.",
+        "operationId": "callback",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query"
+          },
+          {
+            "name": "code",
+            "in": "query"
+          },
+          {
+            "name": "error",
+            "in": "query"
+          },
+          {
+            "name": "error_description",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorDetail": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        }
+      },
+      "QuizHintResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "questionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "step": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": "string"
+          },
+          "hintUsageCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "hintUsageCount",
+          "questionId",
+          "step",
+          "text"
+        ]
+      },
+      "SubmitQuizAnswer": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "type": "string",
+            "enum": [
+              "O",
+              "X"
+            ]
+          }
+        },
+        "required": [
+          "answer"
+        ]
+      },
+      "NullableQuizFeedback": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/QuizFeedback"
+          },
+          {
+            "$ref": "#/components/schemas/QuizNull"
+          }
+        ]
+      },
+      "QuizAnswerResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "visitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "questionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "submittedAnswer": {
+            "type": "string"
+          },
+          "feedback": {
+            "$ref": "#/components/schemas/NullableQuizFeedback"
+          },
+          "answeredCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "correctCount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "visitStatus": {
+            "type": "string",
+            "enum": [
+              "PLANNED",
+              "QUIZ_IN_PROGRESS",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "completedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "completionPlaceId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "answeredCount",
+          "completedAt",
+          "completionPlaceId",
+          "correctCount",
+          "feedback",
+          "questionId",
+          "submittedAnswer",
+          "visitId",
+          "visitStatus"
+        ]
+      },
+      "QuizFeedback": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "correctAnswer": {
+            "type": "string"
+          },
+          "isCorrect": {
+            "type": "boolean"
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "explanationSource": {
+            "type": "string",
+            "enum": [
+              "STORED_CONTENT"
+            ]
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuizSourceReference"
+            }
+          },
+          "photoEvidenceText": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "correctAnswer",
+          "explanation",
+          "explanationSource",
+          "isCorrect",
+          "photoEvidenceText",
+          "sources"
+        ]
+      },
+      "QuizNull": {
+        "type": "null"
+      },
+      "QuizSourceReference": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "checkedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "checkedAt",
+          "id",
+          "type",
+          "url"
+        ]
+      },
+      "CreateVisit": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "placeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "plannedDate": {
+            "type": "string",
+            "format": "date",
+            "description": "YYYY-MM-DD. 실제 유효한 0001~9999년 날짜",
+            "example": "2026-11-07"
+          },
+          "childProfileId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "생략·null 허용. 본인 프로필만 선택"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "RECOMMENDATION",
+              "POPULAR",
+              "MAP"
+            ]
+          }
+        },
+        "required": [
+          "placeId",
+          "plannedDate",
+          "source"
+        ]
+      },
+      "Visit": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "placeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "placeName": {
+            "type": "string"
+          },
+          "placeAvailable": {
+            "type": "boolean"
+          },
+          "childProfileId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "plannedDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "RECOMMENDATION",
+              "POPULAR",
+              "MAP"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PLANNED",
+              "QUIZ_IN_PROGRESS",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "quizSetId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "answeredCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "correctCount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "hintUsageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reportedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "cancelledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "answeredCount",
+          "cancelledAt",
+          "childProfileId",
+          "completedAt",
+          "correctCount",
+          "createdAt",
+          "hintUsageCount",
+          "id",
+          "placeAvailable",
+          "placeId",
+          "placeName",
+          "plannedDate",
+          "quizSetId",
+          "reportedAt",
+          "source",
+          "status",
+          "updatedAt"
+        ]
+      },
+      "QuizProgress": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "visitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quizSetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quizVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quizAvailability": {
+            "type": "string",
+            "enum": [
+              "READY",
+              "NOT_READY",
+              "CORRECTION_REQUIRED"
+            ]
+          },
+          "visitStatus": {
+            "type": "string",
+            "enum": [
+              "PLANNED",
+              "QUIZ_IN_PROGRESS",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "introduction": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "answeredCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "correctCount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "hintUsageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuizQuestion"
+            }
+          },
+          "restartAvailable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "answeredCount",
+          "correctCount",
+          "hintUsageCount",
+          "introduction",
+          "questions",
+          "quizAvailability",
+          "quizSetId",
+          "quizVersion",
+          "restartAvailable",
+          "visitId",
+          "visitStatus"
+        ]
+      },
+      "QuizQuestion": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "questionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "position": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": "string"
+          },
+          "observationGuide": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "referenceImageUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "availableHintSteps": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "viewedHintSteps": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "submittedAnswer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "O / X 또는 미응답 null"
+          },
+          "feedback": {
+            "$ref": "#/components/schemas/NullableQuizFeedback"
+          }
+        },
+        "required": [
+          "availableHintSteps",
+          "feedback",
+          "observationGuide",
+          "position",
+          "questionId",
+          "referenceImageUrl",
+          "submittedAnswer",
+          "text",
+          "viewedHintSteps"
+        ]
+      },
+      "RecommendationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "visitDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-11-08"
+          },
+          "purposeCode": {
+            "type": "string",
+            "example": "ACTIVE_PLAY"
+          },
+          "childProfileId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "districtCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "CHEOIN"
+          },
+          "environmentPreference": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "INDOOR",
+              "OUTDOOR",
+              "ANY"
+            ],
+            "example": "ANY"
+          }
+        },
+        "required": [
+          "purposeCode",
+          "visitDate"
+        ]
+      },
+      "MatchedCondition": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "PURPOSE",
+              "INTEREST",
+              "BOOK_GENRE",
+              "AGE",
+              "REGION",
+              "ENVIRONMENT",
+              "WEATHER"
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "kind",
+          "label"
+        ]
+      },
+      "PlaceSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "districtCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mainActivities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "INDOOR",
+              "OUTDOOR",
+              "MIXED",
+              "UNKNOWN"
+            ]
+          },
+          "thumbnailUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "interestCategoryIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "address",
+          "districtCode",
+          "environment",
+          "id",
+          "interestCategoryIds",
+          "latitude",
+          "longitude",
+          "mainActivities",
+          "name",
+          "thumbnailUrl"
+        ]
+      },
+      "RecommendationItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "place": {
+            "$ref": "#/components/schemas/PlaceSummary"
+          },
+          "matchedConditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MatchedCondition"
+            }
+          },
+          "weather": {
+            "$ref": "#/components/schemas/Weather"
+          }
+        },
+        "required": [
+          "matchedConditions",
+          "place",
+          "weather"
+        ]
+      },
+      "RecommendationResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "policyVersion": {
+            "type": "string"
+          },
+          "visitDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "purposeCode": {
+            "type": "string"
+          },
+          "childProfileId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "searchMode": {
+            "type": "string",
+            "enum": [
+              "RULE_BASED",
+              "HYBRID"
+            ]
+          },
+          "requestedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "returnedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "shortageReason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "NO_ELIGIBLE_PLACES",
+              "INSUFFICIENT_ELIGIBLE_PLACES"
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "WEATHER_UNAVAILABLE",
+                "WEATHER_PARTIAL",
+                "SEMANTIC_SEARCH_UNAVAILABLE"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecommendationItem"
+            },
+            "maxItems": 5
+          }
+        },
+        "required": [
+          "childProfileId",
+          "items",
+          "policyVersion",
+          "purposeCode",
+          "requestId",
+          "requestedCount",
+          "returnedCount",
+          "searchMode",
+          "shortageReason",
+          "visitDate",
+          "warnings"
+        ]
+      },
+      "Weather": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "targetDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "condition": {
+            "type": "string",
+            "enum": [
+              "CLEAR",
+              "CLOUDY",
+              "RAIN",
+              "UNKNOWN"
+            ]
+          },
+          "unavailableReason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "OUT_OF_FORECAST_RANGE",
+              "PROVIDER_FAILURE",
+              "UNSUPPORTED_CONDITION",
+              "LOCATION_UNAVAILABLE"
+            ]
+          },
+          "forecastAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "checkedAt",
+          "condition",
+          "forecastAt",
+          "targetDate",
+          "unavailableReason"
+        ]
+      },
+      "UploadRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": [
+          "file"
+        ]
+      },
+      "ProfileImageCreated": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "imageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contentType": {
+            "type": "string",
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ]
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "contentType",
+          "imageId",
+          "sizeBytes"
+        ]
+      },
+      "CreateChildProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nickname": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 1
+          },
+          "colorCode": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "ageBandCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "profileImageId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "interestCategoryIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "uniqueItems": true
+          },
+          "bookGenreIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "bookGenreIds",
+          "colorCode",
+          "interestCategoryIds",
+          "nickname"
+        ]
+      },
+      "ChildProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nickname": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 1
+          },
+          "colorCode": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "ageBandCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "profileImageId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "interestCategoryIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "uniqueItems": true
+          },
+          "bookGenreIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "uniqueItems": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "ageBandCode",
+          "bookGenreIds",
+          "colorCode",
+          "createdAt",
+          "id",
+          "interestCategoryIds",
+          "nickname",
+          "profileImageId",
+          "updatedAt"
+        ]
+      },
+      "TokenResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "PatchVisit": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "plannedDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-11-08"
+          }
+        },
+        "required": [
+          "plannedDate"
+        ]
+      },
+      "PatchChildProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "nickname": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 1
+          },
+          "colorCode": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "ageBandCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "profileImageId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "interestCategoryIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "uniqueItems": true
+          },
+          "bookGenreIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "uniqueItems": true
+          }
+        }
+      },
+      "CursorResponseVisit": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Visit"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ]
+      },
+      "EnvironmentPreferenceOption": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "INDOOR",
+              "OUTDOOR",
+              "ANY"
+            ]
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label"
+        ]
+      },
+      "RecommendationOption": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "label": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "active",
+          "code",
+          "label"
+        ]
+      },
+      "RecommendationOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "purposes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecommendationOption"
+            }
+          },
+          "districts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecommendationOption"
+            }
+          },
+          "environmentPreferences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EnvironmentPreferenceOption"
+            }
+          }
+        },
+        "required": [
+          "districts",
+          "environmentPreferences",
+          "purposes"
+        ]
+      },
+      "ColorOption": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "hex": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ColorPolicy": {
+        "type": "object",
+        "properties": {
+          "allowDuplicates": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Option": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PhotoUploadPolicy": {
+        "type": "object",
+        "properties": {
+          "allowedMimeTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "maxBytes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxPixels": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ProfileOptions": {
+        "type": "object",
+        "properties": {
+          "interestCategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagOption"
+            }
+          },
+          "bookGenres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagOption"
+            }
+          },
+          "ageBands": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Option"
+            }
+          },
+          "colors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ColorOption"
+            }
+          },
+          "colorPolicy": {
+            "$ref": "#/components/schemas/ColorPolicy"
+          },
+          "photoUploadPolicy": {
+            "$ref": "#/components/schemas/PhotoUploadPolicy"
+          }
+        }
+      },
+      "TagOption": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CursorResponsePlaceSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlaceSummary"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ]
+      },
+      "PlaceDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "districtCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mainActivities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "INDOOR",
+              "OUTDOOR",
+              "MIXED",
+              "UNKNOWN"
+            ]
+          },
+          "thumbnailUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlaceImage"
+            }
+          },
+          "openingHours": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "feeInfo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetAgeInfo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "amenities": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "cautions": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SourceReference"
+            }
+          },
+          "weather": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "$ref": "#/components/schemas/Weather"
+          },
+          "mapLinks": {
+            "$ref": "#/components/schemas/PlaceMapLinks"
+          },
+          "interestCategoryIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "address",
+          "amenities",
+          "cautions",
+          "description",
+          "districtCode",
+          "environment",
+          "feeInfo",
+          "id",
+          "images",
+          "interestCategoryIds",
+          "latitude",
+          "longitude",
+          "mainActivities",
+          "mapLinks",
+          "name",
+          "openingHours",
+          "sources",
+          "targetAgeInfo",
+          "thumbnailUrl",
+          "weather"
+        ]
+      },
+      "PlaceImage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "position": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sourceUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          }
+        },
+        "required": [
+          "id",
+          "position",
+          "sourceUrl",
+          "url"
+        ]
+      },
+      "PlaceMapLinks": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "placeUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "directionsUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          }
+        },
+        "required": [
+          "directionsUrl",
+          "placeUrl"
+        ]
+      },
+      "SourceReference": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "OFFICIAL",
+              "PUBLIC_DATA",
+              "FIELD_NOTE"
+            ]
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "checkedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "checkedAt",
+          "id",
+          "type",
+          "url"
+        ]
+      },
+      "PopularItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 15,
+            "minimum": 1
+          },
+          "place": {
+            "$ref": "#/components/schemas/PlaceSummary"
+          },
+          "visitCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "place",
+          "rank",
+          "visitCount"
+        ]
+      },
+      "PopularResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PopularItem"
+            },
+            "maxItems": 15
+          },
+          "aggregation": {
+            "$ref": "#/components/schemas/PopularityAggregation"
+          },
+          "emptyReason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "COLLECTING"
+            ]
+          }
+        },
+        "required": [
+          "aggregation",
+          "emptyReason",
+          "items"
+        ]
+      },
+      "PopularityAggregation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "type": "string",
+            "enum": [
+              "REPORTED_DISTINCT_ACCOUNTS"
+            ]
+          },
+          "period": {
+            "$ref": "#/components/schemas/PopularityPeriod"
+          },
+          "deduplication": {
+            "type": "string",
+            "enum": [
+              "ACCOUNT_PER_PLACE"
+            ]
+          },
+          "tieBreak": {
+            "type": "string",
+            "enum": [
+              "NAME_ASC_ID_ASC"
+            ]
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "policyVersion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "asOf",
+          "basis",
+          "deduplication",
+          "period",
+          "policyVersion",
+          "tieBreak"
+        ]
+      },
+      "PopularityPeriod": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ALL_TIME"
+            ]
+          },
+          "fromDate": {
+            "type": "null"
+          },
+          "toDate": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "fromDate",
+          "toDate",
+          "type"
+        ]
+      },
+      "Me": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "CompletedChild": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "childProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "colorCode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "childProfileId",
+          "colorCode"
+        ]
+      },
+      "CompletedDistrict": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "districtCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "completedPlaceCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "completedPlaceCount",
+          "districtCode"
+        ]
+      },
+      "CompletedPlace": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "placeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "비공개 장소의 좌표가 삭제된 경우 null. 기록은 유지한다.",
+            "maximum": 90,
+            "minimum": -90
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "maximum": 180,
+            "minimum": -180
+          },
+          "districtCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "firstCompletedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastCompletedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedVisitCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "placeAvailable": {
+            "type": "boolean"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompletedChild"
+            }
+          },
+          "hasUnassignedVisit": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "children",
+          "completedVisitCount",
+          "districtCode",
+          "firstCompletedAt",
+          "hasUnassignedVisit",
+          "lastCompletedAt",
+          "latitude",
+          "longitude",
+          "name",
+          "placeAvailable",
+          "placeId"
+        ]
+      },
+      "CompletedPlacePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompletedPlace"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "summary": {
+            "$ref": "#/components/schemas/CompletionSummary"
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "summary"
+        ]
+      },
+      "CompletionSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "completedPlaceCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "districts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompletedDistrict"
+            }
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "asOf",
+          "completedPlaceCount",
+          "districts"
+        ]
+      },
+      "CursorResponseChildProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChildProfile"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ]
+      },
+      "CsrfResponse": {
+        "type": "object",
+        "properties": {
+          "csrfToken": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "description": "Opaque access token. Authorize에 'Bearer ' 접두사 없이 토큰 값만 입력하세요.",
+        "scheme": "bearer",
+        "bearerFormat": "opaque"
+      },
+      "RefreshCookie": {
+        "type": "apiKey",
+        "description": "HttpOnly refresh cookie. Swagger에서 직접 설정할 수 없으며 정상 로그인으로 브라우저에 저장된 쿠키를 사용합니다.",
+        "name": "__Host-refresh",
+        "in": "cookie"
+      }
+    }
+  }
+}

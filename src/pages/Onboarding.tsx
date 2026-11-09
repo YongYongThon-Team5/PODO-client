@@ -5,6 +5,7 @@ import Spacer from '../components/Spacer';
 import onboarding1 from '../assets/onboarding-1.jpg';
 import onboarding2 from '../assets/onboarding-2.jpg';
 import onboarding3 from '../assets/onboarding-3.jpg';
+import foxOx from '../assets/fox-onboarding2.png';
 import styles from './Onboarding.module.css';
 
 /** 한 장이 머무는 시간 */
@@ -38,7 +39,11 @@ const SLIDES: ReactNode[] = [
   <>
     <Spacer grow={138} />
     <img className={`${styles.image} ${styles.image2}`} src={onboarding2} alt="여우 캐릭터와 함께 지도를 보며 단서를 찾는 아이" />
-    <Spacer grow={166} />
+    {/* Figma 11.09: 사진 아래 O·X 깃발 든 여우 (342, 121x121) */}
+    <div className={styles.oxFox}>
+      <span className={styles.oxFoxShadow} />
+      <img src={foxOx} alt="O와 X 깃발을 든 여우" />
+    </div>
     <h1 className={`${styles.title} ${styles.titleSmall}`}>직접 보고, OX 퀴즈 3문제로 확인해요</h1>
     <p className={styles.desc}>문제는 장소 안내판·전시물에서 나와요</p>
     <p className={styles.descNext}>막히면 미리 준비된 힌트 2단계</p>
@@ -73,7 +78,7 @@ export default function Onboarding() {
 
   // 전환 중 이미지가 늦게 뜨지 않도록 미리 받아둔다
   useEffect(() => {
-    [onboarding1, onboarding2, onboarding3].forEach((src) => {
+    [onboarding1, onboarding2, onboarding3, foxOx].forEach((src) => {
       new Image().src = src;
     });
   }, []);

@@ -1,0 +1,15 @@
+.screen {
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--color-brown);
+}
+
+.retry {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 10px;
+  background: var(--color-primary);
+  font-weight: 700;
+}

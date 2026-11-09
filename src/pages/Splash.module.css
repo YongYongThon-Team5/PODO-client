@@ -1,29 +1,51 @@
-/* Figma "스플래시": 여우 246, 인사 398, 로고 424, 슬로건 479 (위아래 여백은 Spacer) */
-.content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* 배경은 로그인 화면과 같은 주황빛 그라데이션 */
+.background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* 여우 175x175 (281~456), 말풍선 아래 22 */
+.foxWrap {
+  position: relative;
+  flex: none;
+  align-self: center;
+  margin-top: 22px;
 }
 
 .fox {
-  height: min(150px, calc(150 * var(--u)));
+  position: relative;
+  height: min(175px, calc(175 * var(--u)));
   width: auto;
 }
 
-.hello {
-  margin-top: 2px;
-  font-size: 10px;
-  line-height: 12px;
-  color: var(--color-gray-500);
+/* 발밑 그림자 74x9: 여우 아래끝에서 10px 위 */
+.foxShadow {
+  position: absolute;
+  left: calc(50% - 37.5px);
+  bottom: 10px;
+  width: 74px;
+  height: 9px;
+  background: radial-gradient(closest-side, #49403a, rgba(255, 255, 254, 0));
 }
 
 .logo {
-  margin-top: 14px;
+  position: relative;
+  flex: none;
+  align-self: center;
+  margin-top: 25px;
 }
 
 .slogan {
-  margin-top: 14px;
-  font-size: 13px;
-  line-height: 16px;
-  color: var(--color-gray-500);
+  position: relative;
+  flex: none;
+  margin-top: 12px;
+  font-family: var(--font-pretendard);
+  font-size: 17px;
+  line-height: 30px;
+  text-align: center;
+  color: var(--color-login-sub);
 }
