@@ -43,9 +43,11 @@
 
 /* 맞춤 장소 목록 상단 조건 (Figma 11.09: 주황 → 베이지) */
 .filled {
+  min-width: 90px;
   height: 32px;
   padding: 0 22px;
-  background: #f4f0ee;
+  background: #ff9d53;
+  font-weight: 500;
   cursor: default;
 }
 

@@ -110,7 +110,7 @@
 
 .descNext {
   flex: none;
-  margin-top: 6px;
+  margin-top: 0;
   font-size: 13px;
   line-height: 16px;
 }

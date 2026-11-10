@@ -5,8 +5,9 @@ import background from '../assets/login-bg.jpg';
 import foxRun from '../assets/fox-run.png';
 import styles from './LoadingScreen.module.css';
 
-// Figma "😀로딩페이지" 4종 (11.09)의 말풍선 문구
+// Figma "😀로딩페이지" 5종 (11.10)의 말풍선 문구
 export const LOADING_MESSAGES = {
+  recommend: '맞춤 장소를 찾는 중',
   map: '주변 장소를 지도에 표시하는 중',
   place: '장소 상세 · 오늘 운영 정보를 확인하는 중',
   quiz: 'OX 퀴즈 · 이 장소 퀴즈 3문제를 불러오는 중',
