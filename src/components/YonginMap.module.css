@@ -1,0 +1,133 @@
+.wrap {
+  position: relative;
+  overflow: hidden;
+  background: #dafbeb;
+}
+
+/* 지도 그림이 화면보다 크면 손가락으로 끌어 본다 */
+.viewport {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.canvas {
+  position: relative;
+  margin: 0 auto;
+  background-repeat: no-repeat;
+  background-size: 402px 774px;
+  background-position: 0 0;
+}
+
+.marker {
+  position: absolute;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  transform: translate(-50%, calc(-100% + 15px));
+}
+
+.dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0b3b34;
+}
+
+/* 아직 안 간 곳: Figma 흰 원 30 — 장소가 많아 조금 작게 */
+.todo {
+  transform: translate(-50%, calc(-100% + 10px));
+}
+
+.todo .dot {
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid #c9d4cd;
+  background: #ffffff;
+}
+
+.done .dot {
+  background: #ba94db;
+}
+
+.planned .dot {
+  background: #ff903d;
+}
+
+.selected .dot {
+  box-shadow: 0 0 0 4px rgba(255, 144, 61, 0.35);
+}
+
+.selected.todo .dot {
+  width: 26px;
+  height: 26px;
+  border-color: #ff903d;
+}
+
+/* 위치 태그: Figma 115x24, 모서리 10, Bold 12 */
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 24px;
+  margin-bottom: 14px;
+  padding: 0 10px 0 8px;
+  border-radius: 10px;
+  background: #fdfff6;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 14px;
+  white-space: nowrap;
+  color: #4f2c02;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.done .tag {
+  border: 1px solid #ba94db;
+  background: #f3e6ff;
+  color: #6a3a93;
+}
+
+.planned .tag {
+  color: #ff903d;
+}
+
+/* 범례: Figma 250,110 132x83 */
+.legend {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  z-index: 6;
+  width: 132px;
+  padding: 13px 12px 10px;
+  border: 1px solid #e7e2dc;
+  border-radius: 10px;
+  background: #ffffff;
+  list-style: none;
+  font-size: 11px;
+  line-height: 13px;
+  pointer-events: none;
+}
+
+.legend li + li {
+  margin-top: 9px;
+}
+
+.legendDone {
+  color: #ba94db;
+}
+
+.legendPlanned {
+  color: #ff903d;
+}
+
+.legendTodo {
+  color: #6b7280;
+}

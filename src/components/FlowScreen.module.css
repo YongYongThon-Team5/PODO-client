@@ -1,0 +1,75 @@
+/* 헤더 끝 94.5 → 버튼 674~734 → GNB 772 (버튼 아래 38) */
+.scroll {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 0 30px 38px;
+}
+
+.fill {
+  flex: 1 0 20px;
+}
+
+.message {
+  flex: none;
+  margin-bottom: 10px;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  color: #d4380d;
+}
+
+/* Figma 컴포넌트 "다음": 342x60, 모서리 10, Bold 16 */
+.primary,
+.secondary {
+  flex: none;
+  width: 100%;
+  height: 60px;
+  border-radius: 10px;
+  color: var(--color-brown);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 19px;
+}
+
+.primary {
+  background: #ff903d;
+}
+
+.secondary {
+  background: var(--color-primary-soft);
+  font-size: 15px;
+}
+
+.primary:disabled,
+.secondary:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* 버튼 두 개: 166 + 10 + 166 */
+.row {
+  flex: none;
+  display: flex;
+  gap: 10px;
+}
+
+.row > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.row .primary {
+  font-size: 15px;
+}
+
+/* 주황 꼬리 말풍선 (여우 옆) */
+.center {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
