@@ -7,7 +7,7 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
    * orange: 회원가입·오늘의 조건 (주황 0.5px 테두리)
    * gray: 홈 인기 탐험지 (회색 테두리)
    * brown: 위치 권한 지역 (갈색 테두리)
-   * filled: 맞춤 장소 목록 상단 조건 (항상 채움, 누를 수 없음)
+   * filled: 맞춤 장소 목록 상단 조건 (주황 채움, 누를 수 없음)
    */
   variant?: 'orange' | 'gray' | 'brown' | 'filled';
 };

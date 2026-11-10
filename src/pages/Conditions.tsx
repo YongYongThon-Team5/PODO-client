@@ -20,7 +20,7 @@ export function toRecommendUrl(s: RecommendSearch) {
   return `/recommend?${q}`;
 }
 
-/** Figma "오늘의 조건" */
+/** Figma "맞춤 장소 검색" (상단 제목 "맞춤 장소") */
 export default function Conditions() {
   const navigate = useNavigate();
   const options = useRecommendationOptions();
@@ -50,7 +50,7 @@ export default function Conditions() {
   return (
     <main className="screen">
       <PageHeader
-        title="오늘의 조건"
+        title="맞춤 장소"
         action={
           <button type="button" className={styles.addChild} onClick={() => navigate('/signup')}>
             + 아이 추가하기

@@ -1,4 +1,4 @@
-/* Figma "오늘의 조건": 제목 161, 날짜 라벨 228, 날짜 칸 254, 지역 332, 목적 422, 버튼 604 */
+/* Figma "맞춤 장소 검색" (11.10): 제목 161, 날짜 라벨 232, 날짜 칸 258, 지역 331, 목적 421, 버튼 604 */
 .addChild {
   color: var(--color-primary);
   font-size: 13px;
@@ -43,7 +43,7 @@
 }
 
 .dateLabel {
-  margin-top: 23px;
+  margin-top: 27px;
   padding-left: 10px;
   font-size: 13px;
   font-weight: 700;
@@ -88,7 +88,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 32px;
+  margin-top: 27px;
 }
 
 .group + .group {

@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Chip from '../components/Chip';
 import Gnb from '../components/Gnb';
+import LoadingGate from '../components/LoadingGate';
 import PageHeader from '../components/PageHeader';
 import {
   useAuth,
@@ -13,6 +14,7 @@ import {
   type RecommendationRequest,
 } from '../api/queries';
 import { ENVIRONMENT_LABEL, formatShortDate } from '../lib/format';
+import { toPlaceUrl, type PlaceDetailState } from './PlaceDetail';
 import styles from './Recommend.module.css';
 
 /** Figma "맞춤 장소 목록" — /recommend?date=YYYY-MM-DD&purpose=CODE&district=CODE&child=UUID */
@@ -72,85 +74,97 @@ export default function Recommend() {
     );
   }
 
+  // Figma 흐름: 맞춤 장소 검색 → 로딩("맞춤 장소를 찾는 중") → 맞춤 장소 목록
   return (
-    <main className="screen">
-      <PageHeader title="맞춤 장소 목록" />
+    <LoadingGate type="recommend" pending={result.isPending}>
+      <main className="screen">
+        <PageHeader title="맞춤 장소 목록" />
 
-      <div className={styles.scroll}>
-        <div className={styles.chips}>
-          <Chip variant="filled">{formatShortDate(date)}</Chip>
-          {purposeLabel && <Chip variant="filled">{purposeLabel}</Chip>}
-          {childName && <Chip variant="filled">{childName}</Chip>}
+        <div className={styles.scroll}>
+          <div className={styles.chips}>
+            <Chip variant="filled">{formatShortDate(date)}</Chip>
+            {purposeLabel && <Chip variant="filled">{purposeLabel}</Chip>}
+            {childName && <Chip variant="filled">{childName}</Chip>}
+          </div>
+
+          <p className={styles.notice}>{notice}</p>
+
+          {result.isPending && (
+            <ul className={styles.list} aria-busy>
+              {[0, 1, 2].map((i) => (
+                <li key={i} className={`${styles.card} ${styles.skeleton}`} />
+              ))}
+            </ul>
+          )}
+
+          {result.isError && (
+            <div className={styles.state}>
+              <p>{result.error.message}</p>
+              <button type="button" className={styles.stateButton} onClick={() => result.refetch()}>
+                다시 시도
+              </button>
+            </div>
+          )}
+
+          {data && data.items.length === 0 && (
+            <div className={styles.state}>
+              <p>조건에 맞는 장소가 없어요. 지역이나 목적을 바꿔 보세요.</p>
+              <button type="button" className={styles.stateButton} onClick={() => navigate('/conditions')}>
+                조건 바꾸기
+              </button>
+            </div>
+          )}
+
+          {data && data.items.length > 0 && (
+            <ul className={styles.list}>
+              {data.items.map((item) => (
+                <PlaceCard
+                  key={item.place.id}
+                  item={item}
+                  district={districtLabel(item.place.districtCode)}
+                  to={toPlaceUrl(item.place.id, { date, child, source: 'RECOMMENDATION' })}
+                />
+              ))}
+            </ul>
+          )}
+
+          {data?.shortageReason === 'INSUFFICIENT_ELIGIBLE_PLACES' && (
+            <p className={styles.footnote}>조건에 맞는 곳이 {data.returnedCount}곳이라 모두 보여드려요</p>
+          )}
         </div>
 
-        <p className={styles.notice}>{notice}</p>
-
-        {result.isPending && (
-          <ul className={styles.list} aria-busy>
-            {[0, 1, 2].map((i) => (
-              <li key={i} className={`${styles.card} ${styles.skeleton}`} />
-            ))}
-          </ul>
-        )}
-
-        {result.isError && (
-          <div className={styles.state}>
-            <p>{result.error.message}</p>
-            <button type="button" className={styles.stateButton} onClick={() => result.refetch()}>
-              다시 시도
-            </button>
-          </div>
-        )}
-
-        {data && data.items.length === 0 && (
-          <div className={styles.state}>
-            <p>조건에 맞는 장소가 없어요. 지역이나 목적을 바꿔 보세요.</p>
-            <button type="button" className={styles.stateButton} onClick={() => navigate('/conditions')}>
-              조건 바꾸기
-            </button>
-          </div>
-        )}
-
-        {data && data.items.length > 0 && (
-          <ul className={styles.list}>
-            {data.items.map((item) => (
-              <PlaceCard key={item.place.id} item={item} district={districtLabel(item.place.districtCode)} />
-            ))}
-          </ul>
-        )}
-
-        {data?.shortageReason === 'INSUFFICIENT_ELIGIBLE_PLACES' && (
-          <p className={styles.footnote}>조건에 맞는 곳이 {data.returnedCount}곳이라 모두 보여드려요</p>
-        )}
-      </div>
-
-      <Gnb />
-    </main>
+        <Gnb />
+      </main>
+    </LoadingGate>
   );
 }
 
-function PlaceCard({ item, district }: { item: RecommendationItem; district: string | null }) {
+type PlaceCardProps = { item: RecommendationItem; district: string | null; to: string };
+
+function PlaceCard({ item, district, to }: PlaceCardProps) {
   const { place } = item;
   const meta = [district, ENVIRONMENT_LABEL[place.environment], place.mainActivities[0]].filter(Boolean).join(' · ');
-  // TODO: 장소 상세 화면이 생기면 카드를 눌러 이동
+  const state: PlaceDetailState = { matched: item.matchedConditions };
   return (
-    <li className={styles.card}>
-      {place.thumbnailUrl ? (
-        <img className={styles.thumb} src={place.thumbnailUrl} alt="" loading="lazy" />
-      ) : (
-        <span className={styles.thumb} aria-hidden />
-      )}
-      <div className={styles.info}>
-        <p className={styles.name}>{place.name}</p>
-        <p className={styles.meta}>{meta}</p>
-        <ul className={styles.tags}>
-          {item.matchedConditions.map((m) => (
-            <li key={`${m.kind}-${m.code}`} className={styles.tag}>
-              {m.label}
-            </li>
-          ))}
-        </ul>
-      </div>
+    <li>
+      <Link className={styles.card} to={to} state={state}>
+        {place.thumbnailUrl ? (
+          <img className={styles.thumb} src={place.thumbnailUrl} alt="" loading="lazy" />
+        ) : (
+          <span className={styles.thumb} aria-hidden />
+        )}
+        <div className={styles.info}>
+          <p className={styles.name}>{place.name}</p>
+          <p className={styles.meta}>{meta}</p>
+          <ul className={styles.tags}>
+            {item.matchedConditions.map((m) => (
+              <li key={`${m.kind}-${m.code}`} className={styles.tag}>
+                {m.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Link>
     </li>
   );
 }

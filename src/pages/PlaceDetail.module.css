@@ -1,0 +1,167 @@
+/*
+ * Figma "장소 상세 ": 사진 61~229 → 이름 249 · 주소 282 → 맞는 조건 316(72) → 운영 정보 408(129)
+ *                  → 버튼 674~734 → GNB 772 (버튼 아래 38)
+ * 상태바(0~45)는 그리지 않지만 사진 위치는 Figma 그대로 둔다.
+ */
+.scroll {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 61px 30px 38px;
+}
+
+.photoWrap {
+  position: relative;
+  flex: none;
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  height: 168px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f3ece4;
+}
+
+/* Figma는 사진 왼쪽 위에 흰 화살표. 사진 안쪽에 두고 그림자로 밝은 사진에서도 보이게 */
+.back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+}
+
+.back img {
+  filter: brightness(0) invert(1) drop-shadow(0 0 2px rgba(0, 0, 0, 0.55));
+}
+
+.skeleton {
+  flex: none;
+  height: 260px;
+  margin-top: 20px;
+  border-radius: 10px;
+  background: #faf6f1;
+}
+
+.error {
+  margin-top: 20px;
+}
+
+.name {
+  margin-top: 20px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 26px;
+  color: var(--color-brown);
+}
+
+.address {
+  margin-top: 7px;
+  font-size: 12px;
+  line-height: 14px;
+  color: var(--color-brown);
+}
+
+.match {
+  flex: none;
+  margin-top: 20px;
+  padding: 13px 16px 12px;
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+}
+
+.boxTitle {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 16px;
+  color: var(--color-brown);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 9px;
+  list-style: none;
+}
+
+.tag {
+  height: 22px;
+  padding: 4px 15px 5px;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 11px;
+  line-height: 13px;
+  color: var(--color-brown);
+}
+
+.info {
+  flex: none;
+  margin-top: 20px;
+  padding: 16px 16px 14px;
+  border-radius: 10px;
+  background: #f4f0ee;
+  color: var(--color-brown);
+}
+
+.infoTitle {
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 17px;
+}
+
+.infoLine {
+  font-size: 12px;
+  line-height: 24px;
+}
+
+/* 내용이 짧으면 버튼을 Figma 위치(GNB 위 38)로 내린다 */
+.fill {
+  flex: 1 0 20px;
+}
+
+.message {
+  flex: none;
+  margin-bottom: 10px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #d4380d;
+}
+
+.buttons {
+  flex: none;
+  display: flex;
+  gap: 10px;
+}
+
+.primary,
+.secondary {
+  flex: 1;
+  height: 60px;
+  border-radius: 10px;
+  color: var(--color-brown);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.primary {
+  background: var(--color-primary);
+}
+
+.primary:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.secondary {
+  background: var(--color-primary-soft);
+}

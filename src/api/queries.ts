@@ -112,6 +112,21 @@ export function usePlace(placeId: string | null | undefined, visitDate?: string)
   });
 }
 
+export type CreateVisit = Schemas['CreateVisit'];
+
+/**
+ * 방문 예정 등록. 같은 요청을 다시 보내도 한 번만 생기도록 Idempotency-Key를 붙인다.
+ * 키는 화면에서 한 번 만들어 재시도 때 그대로 넘긴다.
+ */
+export function useCreateVisit() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ body, key }: { body: CreateVisit; key: string }) =>
+      unwrap(await api.POST('/api/visits', { params: { header: { 'Idempotency-Key': key } }, body })),
+    onSuccess: (visit) => qc.setQueryData(queryKeys.activeVisits, visit),
+  });
+}
+
 /** 방문 예정·퀴즈 진행 중인 방문 (계정당 활성 방문은 1건) */
 export function useActiveVisit() {
   const auth = useAuth();

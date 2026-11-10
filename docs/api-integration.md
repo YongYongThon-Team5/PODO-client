@@ -71,11 +71,11 @@ src/mocks/           # MSW: Swagger에 아직 없는 B·C API 임시 응답
 
 | 단계 | API | 화면 | 상태 |
 |---|---|---|---|
-| 1 | csrf · token · logout · login/kakao · me | 로그인, 앱 시작 | 연결 (`src/api/auth.ts`) |
+| 1 | csrf · token · logout · login/kakao · me | 로그인, 앱 시작 | csrf·token·login 연결 (`src/api/auth.ts`). logout은 함수만 있음(버튼은 마이페이지), me는 미연결 |
 | 2 | profile-options · child-profiles (목록·생성·수정) | 회원가입(아이 프로필) | 연결 (`Signup`) |
 | 3 | profile-images (업로드·조회) | 프로필 사진 | 훅만 준비 (디자인에 사진 입력 없음) |
-| 4 | recommendation-options · recommendations · places/popular · places/{id} | 오늘의 조건·맞춤 목록·홈 | 연결 (`Conditions`·`Recommend`·`Home`). 홈 날씨는 `places/{id}?visitDate=`의 weather (예보는 며칠 앞까지만) |
-| 5 | visits · report | 방문 예정·방문했어요 | 홈 방문 예정만 연결 |
+| 4 | recommendation-options · recommendations · places/popular · places/{id} | 오늘의 조건·맞춤 목록·홈·장소 상세 | 연결 (`Conditions`·`Recommend`·`Home`·`PlaceDetail`). 홈 날씨는 `places/{id}?visitDate=`의 weather (예보는 며칠 앞까지만) |
+| 5 | visits · report | 방문 예정·방문했어요 | 목록(홈 방문 예정)·등록(장소 상세 "지금 방문", `Idempotency-Key`) 연결. 상세·예정일 변경·취소·report 미연결 |
 | 6 | quiz · answers · hint-views · restart | OX 퀴즈 | 미연결 |
 | 7 | me/completed-places | 탐방 지도 | 미연결 |
 

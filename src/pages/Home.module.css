@@ -1,5 +1,5 @@
 /*
- * Figma "홈": 그라데이션 0~176 → 검색 카드 138(38px 겹침)~355 → 회색 구분선 360~366
+ * Figma "홈" (11.10): 여우 53 · 인사말 80 / 그라데이션 0~176 → 검색 카드 138(38px 겹침)~355 → 회색 구분선 360~366
  *            → 방문 예정 387 / 카드 425 → 인기 탐험지 526 / 칩 564 / 사진 608
  */
 .screen {
@@ -13,12 +13,39 @@
 }
 
 .hero {
+  display: flex;
   height: 176px;
-  padding: 79px 34px 0;
+  padding: 53px 34px 0 33px;
   background: linear-gradient(90deg, #cbc8c8, #ff903d);
 }
 
+/* 앉아서 궁금해 하는 여우 77x77 (33,53) + 바닥 그림자 52x6 (46,122) */
+.fox {
+  position: relative;
+  flex: none;
+  width: 77px;
+  height: 77px;
+}
+
+.fox img {
+  position: relative;
+  width: 77px;
+  height: 77px;
+}
+
+.foxShadow {
+  position: absolute;
+  left: 13px;
+  top: 69px;
+  width: 52px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #d1c0b6, rgba(255, 255, 254, 0));
+}
+
 .greeting {
+  align-self: flex-start;
+  margin: 27px 0 0 4px;
   font-size: 19px;
   font-weight: 700;
   line-height: 23px;
@@ -27,19 +54,20 @@
 
 /* 회색 구분선(6px)은 아래 테두리로 */
 .searchArea {
-  padding: 0 20px 5px;
+  padding: 0 30px 5px 29px;
   border-bottom: 6px solid #cbc8c8;
   background: #fefcfa;
 }
 
+/* 검색 카드 343x217 (29,138): 그라데이션에 38px 겹침 */
 .searchCard {
   display: flex;
   flex-direction: column;
   width: 100%;
   margin-top: -38px;
-  padding: 26px 13px 22px 23px;
-  border-radius: 10px 10px 0 0;
-  background: #fefcfa;
+  padding: 26px 14px 20px 26px;
+  border-radius: 10px;
+  background: #fff9f4;
   text-align: left;
   color: #5c4300;
 }
@@ -53,15 +81,15 @@
 .searchSub {
   margin-top: 18px;
   font-size: 12px;
-  line-height: 14px;
+  line-height: 20px;
 }
 
 .weekend {
   display: flex;
   flex-direction: column;
   gap: 13px;
-  margin-top: 36px;
-  margin-left: -10px;
+  margin-top: 26px;
+  margin-left: -12px;
   padding: 12px 16px 11px;
   border-radius: 10px;
   background: var(--color-primary-soft);
@@ -182,8 +210,12 @@
   display: none;
 }
 
-.place {
+.places > li {
   flex: none;
+}
+
+.place {
+  display: block;
   width: 109px;
   text-align: center;
   color: var(--color-brown);

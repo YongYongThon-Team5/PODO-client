@@ -1,15 +1,15 @@
-/* Figma "맞춤 장소 목록 ": 조건 칩 130, 안내 182, 카드 240부터 362x104 간격 8 */
+/* Figma "맞춤 장소 목록 " (11.10): 조건 칩 130, 안내 182, 카드 240부터 342x104 간격 10 */
 .scroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 35.5px 20px 24px;
+  padding: 35.5px 30px 24px;
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .notice {
@@ -17,9 +17,9 @@
   align-items: center;
   min-height: 36px;
   margin-top: 20px;
-  padding: 0 16px;
+  padding: 0 14px;
   border-radius: 10px;
-  background: var(--color-primary-soft);
+  background: #ffd4b7;
   font-size: 12px;
   line-height: 14px;
   color: var(--color-brown);
@@ -28,7 +28,7 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   margin-top: 22px;
   list-style: none;
 }
@@ -52,7 +52,7 @@
 .thumb {
   flex: none;
   display: block;
-  width: 72px;
+  width: 68px;
   height: 80px;
   border-radius: 10px;
   object-fit: cover;
@@ -62,7 +62,7 @@
 .info {
   flex: 1;
   min-width: 0;
-  margin-left: 12px;
+  margin-left: 10px;
   padding-top: 5px;
 }
 
@@ -100,9 +100,9 @@
   display: flex;
   align-items: center;
   height: 22px;
-  padding: 0 15px;
+  padding: 0 14px;
   border-radius: 11px;
-  background: var(--color-primary-soft);
+  background: #ffebd6;
   font-size: 11px;
   line-height: 13px;
   color: var(--color-brown);

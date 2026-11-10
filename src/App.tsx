@@ -10,6 +10,7 @@ import LocationPermission from './pages/LocationPermission';
 import Home from './pages/Home';
 import Conditions from './pages/Conditions';
 import Recommend from './pages/Recommend';
+import PlaceDetail from './pages/PlaceDetail';
 import ComingSoon from './pages/ComingSoon';
 import LoadingPreview from './pages/LoadingPreview';
 
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/conditions" element={<Conditions />} />
             <Route path="/recommend" element={<Recommend />} />
+            <Route path="/places/:placeId" element={<PlaceDetail />} />
             {/* GNB 탭 중 아직 디자인 확정 전인 화면 */}
             <Route path="/map" element={<ComingSoon title="지도" />} />
             <Route path="/mission" element={<ComingSoon title="미션" />} />

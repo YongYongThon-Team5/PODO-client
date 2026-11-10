@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Chip from '../components/Chip';
 import Gnb from '../components/Gnb';
+import foxSit from '../assets/fox-sit.png';
 import {
   useActiveVisit,
   useAuth,
@@ -14,6 +15,7 @@ import {
   type PlaceSummary,
 } from '../api/queries';
 import { ENVIRONMENT_LABEL, formatShortDate, shortAddress, upcomingSaturday, withJosaWa } from '../lib/format';
+import { toPlaceUrl } from './PlaceDetail';
 import styles from './Home.module.css';
 
 // 인기 탐험지 카테고리 → 장소의 관심사 코드 (profile-options) 또는 실내 여부
@@ -71,6 +73,10 @@ export default function Home() {
     <main className={`screen ${styles.screen}`}>
       <div className={styles.scroll}>
         <div className={styles.hero}>
+          <span className={styles.fox}>
+            <span className={styles.foxShadow} aria-hidden />
+            <img src={foxSit} alt="" />
+          </span>
           <h1 className={styles.greeting}>
             {nickname ? `${withJosaWa(nickname)} 이번 주말 어디 갈까요?` : '이번 주말 어디 갈까요?'}
           </h1>
@@ -125,9 +131,8 @@ function PlannedVisit({ signedIn, visit, place }: PlannedVisitProps) {
   const sub = [formatShortDate(v.plannedDate), place && shortAddress(place.address), 'OX 퀴즈 3문제']
     .filter(Boolean)
     .join(' · ');
-  // TODO: 장소 상세·방문 화면이 생기면 카드를 눌러 이동
   return (
-    <div className={styles.visitCard}>
+    <Link className={styles.visitCard} to={toPlaceUrl(v.placeId, { date: v.plannedDate, child: v.childProfileId })}>
       {place?.thumbnailUrl ? (
         <img className={styles.visitThumb} src={place.thumbnailUrl} alt="" />
       ) : (
@@ -137,7 +142,7 @@ function PlannedVisit({ signedIn, visit, place }: PlannedVisitProps) {
         <p className={styles.visitName}>{v.placeName}</p>
         <p className={styles.visitSub}>{sub}</p>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -191,18 +196,20 @@ function PopularPlaces() {
       {items.length > 0 ? (
         <ul className={styles.places}>
           {items.map(({ place }) => (
-            <li key={place.id} className={styles.place}>
-              {place.thumbnailUrl ? (
-                <img className={styles.placeThumb} src={place.thumbnailUrl} alt="" loading="lazy" />
-              ) : (
-                <span className={styles.placeThumb} aria-hidden />
-              )}
-              <p className={styles.placeName}>{place.name}</p>
-              <p className={styles.placeSub}>
-                {[districtLabel(place.districtCode), categoryOf(place)?.label ?? ENVIRONMENT_LABEL[place.environment]]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </p>
+            <li key={place.id}>
+              <Link className={styles.place} to={toPlaceUrl(place.id, { source: 'POPULAR' })}>
+                {place.thumbnailUrl ? (
+                  <img className={styles.placeThumb} src={place.thumbnailUrl} alt="" loading="lazy" />
+                ) : (
+                  <span className={styles.placeThumb} aria-hidden />
+                )}
+                <p className={styles.placeName}>{place.name}</p>
+                <p className={styles.placeSub}>
+                  {[districtLabel(place.districtCode), categoryOf(place)?.label ?? ENVIRONMENT_LABEL[place.environment]]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </p>
+              </Link>
             </li>
           ))}
         </ul>
