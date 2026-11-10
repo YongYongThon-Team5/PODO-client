@@ -1,0 +1,171 @@
+/* Figma "지도": 헤더 아래 99~ 지도, 범례 250,110 / "지도 탐색": 장소 카드 495~ (GNB 772 위) */
+.body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin-top: 4.5px;
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+}
+
+.error {
+  padding: 30px;
+}
+
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 8;
+  padding: 0 30px 32px;
+  border-radius: 20px 20px 0 0;
+  background: #ffffff;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  animation: sheet-up 220ms ease-out;
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+/* 손잡이 40x4 (y 514) */
+.handle {
+  display: block;
+  width: 100%;
+  height: 39px;
+  position: relative;
+}
+
+.handle::after {
+  content: '';
+  position: absolute;
+  left: calc(50% - 20px);
+  top: 17px;
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: #d9d9d9;
+}
+
+.head {
+  display: flex;
+  gap: 15px;
+}
+
+.thumb {
+  flex: none;
+  display: block;
+  width: 84px;
+  height: 84px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f3ece4;
+}
+
+.headText {
+  min-width: 0;
+  padding-top: 7px;
+}
+
+.name {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 19px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.address {
+  margin-top: 7px;
+  font-size: 12px;
+  line-height: 14px;
+  color: #6b7280;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  list-style: none;
+}
+
+.tags li {
+  height: 21px;
+  padding: 0 14px;
+  border-radius: 10px;
+  background: #f4f0ee;
+  font-size: 11px;
+  line-height: 21px;
+}
+
+/* 운영 정보 342x44 #fff4d6 (y 633) */
+.hours {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-height: 44px;
+  margin-top: 15px;
+  padding: 7px 18px;
+  border-radius: 10px;
+  background: #fff4d6;
+}
+
+.hours strong,
+.hours span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  word-break: keep-all;
+}
+
+.hours strong {
+  font-size: 12px;
+  line-height: 14px;
+}
+
+.hours span {
+  -webkit-line-clamp: 1;
+  font-size: 11px;
+  line-height: 13px;
+}
+
+/* 버튼 166x48 (y 691) */
+.buttons {
+  display: flex;
+  gap: 11px;
+  margin-top: 14px;
+}
+
+.naver,
+.record {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.naver {
+  background: #03c75a;
+  color: #ffffff;
+}
+
+.record {
+  border: 1px solid var(--color-brown);
+  background: #ffffff;
+}

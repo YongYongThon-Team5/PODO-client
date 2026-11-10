@@ -11,7 +11,15 @@ import Home from './pages/Home';
 import Conditions from './pages/Conditions';
 import Recommend from './pages/Recommend';
 import PlaceDetail from './pages/PlaceDetail';
-import ComingSoon from './pages/ComingSoon';
+import MapPage from './pages/MapPage';
+import Mission from './pages/Mission';
+import VisitPhotos from './pages/visit/VisitPhotos';
+import QuizIntro from './pages/visit/QuizIntro';
+import ExploreStart from './pages/visit/ExploreStart';
+import QuizQuestion from './pages/visit/QuizQuestion';
+import QuizCheer from './pages/visit/QuizCheer';
+import QuizComplete from './pages/visit/QuizComplete';
+import MyPage from './pages/MyPage';
 import LoadingPreview from './pages/LoadingPreview';
 
 export default function App() {
@@ -35,10 +43,17 @@ export default function App() {
             <Route path="/conditions" element={<Conditions />} />
             <Route path="/recommend" element={<Recommend />} />
             <Route path="/places/:placeId" element={<PlaceDetail />} />
-            {/* GNB 탭 중 아직 디자인 확정 전인 화면 */}
-            <Route path="/map" element={<ComingSoon title="지도" />} />
-            <Route path="/mission" element={<ComingSoon title="미션" />} />
-            <Route path="/my" element={<ComingSoon title="마이페이지" />} />
+            {/* 방문 확정 → 탐험 퀴즈 → 탐험 완료 */}
+            <Route path="/visits/:visitId/photos" element={<VisitPhotos />} />
+            <Route path="/visits/:visitId/episode" element={<QuizIntro />} />
+            <Route path="/visits/:visitId/arrive" element={<ExploreStart />} />
+            <Route path="/visits/:visitId/quiz/:position" element={<QuizQuestion />} />
+            <Route path="/visits/:visitId/cheer" element={<QuizCheer />} />
+            <Route path="/visits/:visitId/complete" element={<QuizComplete />} />
+            <Route path="/map" element={<MapPage />} />
+            <Route path="/mission" element={<Mission />} />
+            {/* 마이페이지는 Figma에서 아직 확정(😀) 전이지만 디자인대로 만듦 */}
+            <Route path="/my" element={<MyPage />} />
             <Route path="/preview/loading" element={<LoadingPreview />} />
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>

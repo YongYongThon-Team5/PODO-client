@@ -12,9 +12,11 @@ import {
   usePlace,
   type CreateVisit,
   type RecommendationItem,
+  type Visit,
 } from '../api/queries';
 import { ApiError } from '../api/errors';
 import { toIsoDate, upcomingSaturday, withJosaWa } from '../lib/format';
+import { resumePath, visitPath } from '../lib/quiz';
 import styles from './PlaceDetail.module.css';
 
 /** 맞춤 장소 목록에서 넘어올 때 함께 받는 "맞는 조건" */
@@ -62,10 +64,10 @@ export default function PlaceDetail() {
   const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate('/home'));
 
   /** 방문 등록 (계정당 활성 방문은 1건). 이미 이 장소가 잡혀 있으면 새로 만들지 않는다 */
-  const registerVisit = (plannedDate: string, onDone: () => void) => {
+  const registerVisit = (plannedDate: string, onDone: (visit: Visit) => void) => {
     if (!placeId) return;
     if (activeVisit.data?.placeId === placeId) {
-      onDone();
+      onDone(activeVisit.data);
       return;
     }
     if (activeVisit.data) {
@@ -95,22 +97,25 @@ export default function PlaceDetail() {
     );
   };
 
-  /** 지도 탐색 = 방문 예정. 로그인 전이거나 다른 방문이 잡혀 있으면 등록 없이 지도만 연다 */
+  /** 지도 탐색 = 방문 예정. 로그인 전이거나 다른 방문이 잡혀 있으면 등록 없이 지도에서 이 장소만 보여 준다 */
   const exploreMap = () => {
+    const mapUrl = `/map?place=${placeId}`;
     if (auth.status !== 'signedIn' || (activeVisit.data && activeVisit.data.placeId !== placeId)) {
-      navigate('/map');
+      navigate(mapUrl);
       return;
     }
-    registerVisit(date ?? upcomingSaturday(), () => navigate('/map'));
+    registerVisit(date ?? upcomingSaturday(), () => navigate(mapUrl));
   };
 
-  /** 지금 방문 = 방문 확정 (오늘). TODO: 사진 추가 화면이 생기면 그쪽으로 이동 */
+  /** 지금 방문 = 방문 확정 (오늘) → 사진 추가. 이미 이 장소 퀴즈 중이면 이어서 */
   const visitNow = () => {
     if (auth.status !== 'signedIn') {
       navigate('/login');
       return;
     }
-    registerVisit(toIsoDate(new Date()), () => navigate('/home'));
+    registerVisit(toIsoDate(new Date()), (visit) =>
+      navigate(visit.status === 'PLANNED' ? visitPath.photos(visit.id) : resumePath(visit)),
+    );
   };
 
   const p = place.data;

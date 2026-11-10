@@ -71,13 +71,13 @@ src/mocks/           # MSW: Swagger에 아직 없는 B·C API 임시 응답
 
 | 단계 | API | 화면 | 상태 |
 |---|---|---|---|
-| 1 | csrf · token · logout · login/kakao · me | 로그인, 앱 시작 | csrf·token·login 연결 (`src/api/auth.ts`). logout은 함수만 있음(버튼은 마이페이지), me는 미연결 |
-| 2 | profile-options · child-profiles (목록·생성·수정) | 회원가입(아이 프로필) | 연결 (`Signup`) |
-| 3 | profile-images (업로드·조회) | 프로필 사진 | 훅만 준비 (디자인에 사진 입력 없음) |
+| 1 | csrf · token · logout · login/kakao · me | 로그인, 앱 시작, 마이페이지 | csrf·token·login 연결 (`src/api/auth.ts`), logout은 마이페이지 프로필 수정에서 연결. me는 accountId뿐이라 쓰지 않음 |
+| 2 | profile-options · child-profiles (목록·생성·수정) | 회원가입·마이페이지 | 연결 (`Signup`·`MyPage` 이름·사진 수정) |
+| 3 | profile-images (업로드·조회) | 프로필 사진 | 마이페이지 프로필 수정에서 연결 (조회는 Bearer로 받아 화면용 주소로 바꿈) |
 | 4 | recommendation-options · recommendations · places/popular · places/{id} | 오늘의 조건·맞춤 목록·홈·장소 상세 | 연결 (`Conditions`·`Recommend`·`Home`·`PlaceDetail`). 홈 날씨는 `places/{id}?visitDate=`의 weather (예보는 며칠 앞까지만) |
-| 5 | visits · report | 방문 예정·방문했어요 | 목록(홈 방문 예정)·등록(장소 상세 "지금 방문", `Idempotency-Key`) 연결. 상세·예정일 변경·취소·report 미연결 |
-| 6 | quiz · answers · hint-views · restart | OX 퀴즈 | 미연결 |
-| 7 | me/completed-places | 탐방 지도 | 미연결 |
+| 5 | visits · report | 방문 예정·방문했어요 | 목록·등록(`Idempotency-Key`)·상세·예정일 변경·report 연결 (`PlaceDetail`·`VisitPhotos`·`Mission`). report가 409이고 예정일이 오늘이 아니면 PATCH로 오늘로 바꾼 뒤 다시 report. 취소는 미션 탭 "방문 예정 취소"로 연결 |
+| 6 | quiz · answers · hint-views · restart | OX 퀴즈 | 연결 (`QuizIntro`·`QuizQuestion`·`QuizCheer`·`Mission`). 첫 답만 저장되므로 "다시 한 번 더"는 해설의 정답과 화면에서만 비교 |
+| 7 | places(목록) · me/completed-places | 탐방 지도·탐험 완료 | 연결 (`MapPage`·`QuizComplete`). 지도는 Figma 용인 그림 위에 위경도를 비례해 찍음 |
 
 ## 6. 백엔드에 요청할 것
 
@@ -92,3 +92,6 @@ src/mocks/           # MSW: Swagger에 아직 없는 B·C API 임시 응답
    - 인증 API의 401·403·오류 코드 응답 명시
    - B·C API와 `profile-images` 추가
 6. **운영 데이터**: `GET /api/profile-options`의 `ageBands`가 현재 빈 배열 → 회원가입 나이 선택지가 비어 보임
+7. **방문 사진 업로드 API**: Figma "사진 추가"(3장 선택·전송)에 맞는 API가 없음 → 지금은 사진을 기기 화면에서만 보여 주고 전송하지 않음
+8. **report 조건**: 예정일이 오늘이 아닌 방문을 report하면 409인지, 그때 PATCH 후 report하는 흐름이 맞는지
+9. **observationGuide 형식**: Figma는 "입구 안내도"처럼 짧은 위치 이름 → 실제 데이터도 짧은 이름인지 (12자 넘으면 문장으로 보고 따로 보여 줌)
