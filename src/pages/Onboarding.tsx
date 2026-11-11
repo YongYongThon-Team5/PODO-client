@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom';
 import PageDots from '../components/PageDots';
 import Spacer from '../components/Spacer';
-import onboarding1 from '../assets/onboarding-1.webp';
-import onboarding2 from '../assets/onboarding-2.webp';
-import onboarding3 from '../assets/onboarding-3.webp';
+import onboarding1 from '../assets/onboarding-1.jpg';
+import onboarding2 from '../assets/onboarding-2.jpg';
+import onboarding3 from '../assets/onboarding-3.jpg';
 import foxOx from '../assets/fox-onboarding2.png';
 import styles from './Onboarding.module.css';
 

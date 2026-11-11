@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import Gnb from '../components/Gnb';
 import LoadError from '../components/LoadError';
-import foxSitBig from '../assets/fox-sit-big.webp';
+import foxSitBig from '../assets/fox-sit-big.png';
 import {
   useActiveVisit,
   useAuth,

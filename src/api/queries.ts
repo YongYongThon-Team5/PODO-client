@@ -153,11 +153,7 @@ export function useCreateVisit() {
   return useMutation({
     mutationFn: async ({ body, key }: { body: CreateVisit; key: string }) =>
       unwrap(await api.POST('/api/visits', { params: { header: { 'Idempotency-Key': key } }, body })),
-    onSuccess: (visit) => {
-      qc.setQueryData(queryKeys.activeVisits, visit);
-      // 다음 화면(사진 추가)이 같은 방문을 다시 받지 않게
-      qc.setQueryData(['visits', visit.id], visit);
-    },
+    onSuccess: (visit) => qc.setQueryData(queryKeys.activeVisits, visit),
   });
 }
 

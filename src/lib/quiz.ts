@@ -43,19 +43,6 @@ export function resumePath(visit: Pick<Visit, 'id' | 'status' | 'answeredCount'>
   return next ? visitPath.question(visit.id, next.position) : visitPath.episode(visit.id);
 }
 
-const preloaded = new Set<string>();
-
-/** 다음 화면에 쓸 이미지를 미리 받아 두기 (같은 주소는 한 번만) */
-export function preloadImages(urls: (string | null | undefined)[]) {
-  for (const url of urls) {
-    if (!url || preloaded.has(url)) continue;
-    preloaded.add(url);
-    const img = new Image();
-    img.decoding = 'async';
-    img.src = url;
-  }
-}
-
 /** 문제·해설을 소리로 읽어 주기 (Figma 스피커 아이콘). 지원하지 않는 브라우저면 아무것도 안 한다 */
 export function speak(text: string) {
   if (!('speechSynthesis' in window)) return;

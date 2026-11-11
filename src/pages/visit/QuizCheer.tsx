@@ -2,7 +2,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import Gnb from '../../components/Gnb';
 import SpeechBubble from '../../components/SpeechBubble';
 import { flow } from '../../components/FlowScreen';
-import foxSitBig from '../../assets/fox-sit-big.webp';
+import foxSitBig from '../../assets/fox-sit-big.png';
 import { useAuth, useQuiz, useVisit } from '../../api/queries';
 import { guideLine, nextUnanswered, visitPath } from '../../lib/quiz';
 import styles from './QuizCheer.module.css';

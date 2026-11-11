@@ -14,7 +14,7 @@
 
 .hero {
   padding: 101px 30px 23px;
-  background: url('../assets/mission-bg.webp') center / cover no-repeat, #ff903d;
+  background: url('../assets/mission-bg.png') center / cover no-repeat, #ff903d;
 }
 
 .heading {
