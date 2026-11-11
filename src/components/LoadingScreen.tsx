@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import Spacer from './Spacer';
 import SpeechBubble from './SpeechBubble';
-import background from '../assets/login-bg.jpg';
-import foxRun from '../assets/fox-run.png';
+import background from '../assets/login-bg.webp';
+import foxRun from '../assets/fox-run.webp';
 import styles from './LoadingScreen.module.css';
 
 // Figma "😀로딩페이지" 5종 (11.10)의 말풍선 문구
