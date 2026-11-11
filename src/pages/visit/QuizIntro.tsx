@@ -5,7 +5,9 @@ import LoadingGate from '../../components/LoadingGate';
 import foxSit from '../../assets/fox-sit.png';
 import speakerIcon from '../../assets/icon-speaker.svg';
 import { useAuth, usePlace, useQuiz, useRestartQuiz, useVisit } from '../../api/queries';
-import { guideLine, guidePlace, nextUnanswered, speak, visitPath } from '../../lib/quiz';
+import { guideLine, guidePlace, nextUnanswered, preloadImages, speak, visitPath } from '../../lib/quiz';
+import { toIsoDate } from '../../lib/format';
+import foxHello from '../../assets/fox-hello.png';
 import styles from './QuizIntro.module.css';
 
 const DEFAULT_INTRO = '안내판을 잘 보면 다 맞힐 수 있어요';
@@ -17,7 +19,8 @@ export default function QuizIntro() {
   const auth = useAuth();
   const visit = useVisit(visitId);
   const quiz = useQuiz(visit.data?.status === 'PLANNED' ? undefined : visitId);
-  const place = usePlace(visit.data?.placeId);
+  // 다음 화면(탐험 시작)이 쓰는 오늘 날씨까지 같은 요청으로 미리 받는다
+  const place = usePlace(visit.data?.placeId, toIsoDate(new Date()));
   const restart = useRestartQuiz();
 
   if (auth.status === 'signedOut') return <Navigate to="/login" replace />;
@@ -41,6 +44,9 @@ export default function QuizIntro() {
     else if (!started) navigate(visitPath.arrive(visitId));
     else navigate(visitPath.question(visitId, next.position));
   };
+
+  // 탐험 시작의 여우와 첫 문제 사진을 미리 받아 둔다
+  preloadImages([foxHello, next?.referenceImageUrl]);
 
   const error = visit.error ?? quiz.error;
 

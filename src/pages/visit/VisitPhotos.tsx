@@ -24,7 +24,8 @@ export default function VisitPhotos() {
   const { visitId } = useParams();
   const auth = useAuth();
   const visit = useVisit(visitId);
-  const place = usePlace(visit.data?.placeId);
+  // 에피소드 소개·탐험 시작과 같은 키(오늘 날씨 포함)로 받아 한 번만 요청
+  const place = usePlace(visit.data?.placeId, toIsoDate(new Date()));
   const report = useReportVisit();
   const patch = usePatchVisit();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -70,7 +71,7 @@ export default function VisitPhotos() {
     else setMessage(e.message);
   };
 
-  /** 방문 신고 → 퀴즈 시작. 예정일이 오늘이 아니라서 막히면 오늘로 바꾼 뒤 한 번 더 */
+  /** 방문 신고 → 퀴즈 시작. 예정일이 오늘이 아니면 먼저 오늘로 바꾼 뒤 신고한다 (실패 후 재시도 왕복을 없앰) */
   const start = () => {
     if (!v) return;
     if (v.status !== 'PLANNED') {
@@ -80,17 +81,9 @@ export default function VisitPhotos() {
     setMessage(null);
     const goQuiz = () => navigate(visitPath.episode(v.id), { replace: true });
     const today = toIsoDate(new Date());
-    report.mutate(v.id, {
-      onSuccess: goQuiz,
-      onError: (e) => {
-        if (e instanceof ApiError && e.status === 409 && v.plannedDate !== today) {
-          patch.mutate(
-            { visitId: v.id, plannedDate: today },
-            { onSuccess: () => report.mutate(v.id, { onSuccess: goQuiz, onError: fail }), onError: fail },
-          );
-        } else fail(e);
-      },
-    });
+    const doReport = () => report.mutate(v.id, { onSuccess: goQuiz, onError: fail });
+    if (v.plannedDate === today) doReport();
+    else patch.mutate({ visitId: v.id, plannedDate: today }, { onSuccess: doReport, onError: fail });
   };
 
   const hasPhotos = photos.length > 0;

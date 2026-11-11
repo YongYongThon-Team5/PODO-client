@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Spacer from '../components/Spacer';
 import SpeechBubble from '../components/SpeechBubble';
-import background from '../assets/login-bg.jpg';
-import fox from '../assets/fox-wave.png';
+import background from '../assets/login-bg.webp';
+import fox from '../assets/fox-wave.webp';
 import logo from '../assets/logo-login.svg';
 import styles from './Splash.module.css';
 

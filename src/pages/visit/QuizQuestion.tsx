@@ -20,7 +20,7 @@ import {
 } from '../../api/queries';
 import { ApiError } from '../../api/errors';
 import { formatDotDate } from '../../lib/format';
-import { guidePlace, nextUnanswered, speak, stopSpeaking, visitPath } from '../../lib/quiz';
+import { guidePlace, nextUnanswered, preloadImages, speak, stopSpeaking, visitPath } from '../../lib/quiz';
 import styles from './QuizQuestion.module.css';
 
 type Answer = 'O' | 'X';
@@ -92,6 +92,10 @@ function Step({ visitId, quiz, q }: { visitId: string; quiz: QuizProgress; q: Qu
 
   const total = quiz.questions.length;
   const feedback = q.feedback;
+
+  // 결과 화면 여우와 다음 문제 사진을 미리 받아 둔다
+  const upcoming = quiz.questions.find((item) => item.position > q.position && !item.submittedAnswer);
+  preloadImages([foxRight, foxWrong, foxQuestion, upcoming?.referenceImageUrl]);
   const submitted = !!q.submittedAnswer;
   const showResult = submitted && (!retrying || retryCorrect !== null);
   const correct = retrying && retryCorrect !== null ? retryCorrect : !!feedback?.isCorrect;
