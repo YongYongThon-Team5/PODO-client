@@ -26,7 +26,8 @@ export default function QuizComplete() {
   const { visitId } = useParams();
   const auth = useAuth();
   const visit = useVisit(visitId);
-  const quiz = useQuiz(visit.data?.status === 'COMPLETED' ? visitId : undefined);
+  // 방문 정보를 기다리지 않고 같이 받는다 (문제 수 표시용)
+  const quiz = useQuiz(visitId);
   const place = usePlace(visit.data?.placeId);
   const completed = useCompletedPlaces();
   const popular = usePopularPlaces();

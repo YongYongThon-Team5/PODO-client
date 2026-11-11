@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import Spacer from '../components/Spacer';
 import { startKakaoLogin } from '../api/auth';
-import background from '../assets/login-bg.jpg';
-import fox from '../assets/fox-wave.png';
+import background from '../assets/login-bg.webp';
+import fox from '../assets/fox-wave.webp';
 import logo from '../assets/logo-login.svg';
 import styles from './Login.module.css';
 
