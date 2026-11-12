@@ -7,6 +7,7 @@ import quizO from '../../assets/quiz-o.svg';
 import quizX from '../../assets/quiz-x.svg';
 import quizTape from '../../assets/quiz-tape.svg';
 import foxQuestion from '../../assets/fox-question.png';
+import foxHint from '../../assets/fox-hint.png';
 import foxRight from '../../assets/fox-right.png';
 import foxWrong from '../../assets/fox-wrong.png';
 import {
@@ -202,11 +203,6 @@ function Step({ visitId, quiz, q }: { visitId: string; quiz: QuizProgress; q: Qu
     >
       <div className={styles.top}>
         <p className={styles.label}>{label}</p>
-        {q.availableHintSteps.length > 0 && (
-          <button type="button" className={styles.hintButton} onClick={() => setHintOpen(true)}>
-            힌트
-          </button>
-        )}
         <button
           type="button"
           className={styles.speaker}
@@ -234,6 +230,13 @@ function Step({ visitId, quiz, q }: { visitId: string; quiz: QuizProgress; q: Qu
       <section className={styles.card}>
         <span className={styles.badge}>Q{q.position}</span>
         <img className={styles.tape} src={quizTape} alt="" />
+        {q.availableHintSteps.length > 0 && (
+          // Figma 11.13 "힌트 버튼": 문제 카드 오른쪽 위, 고민하는 여우 + "힌트보기"
+          <button type="button" className={styles.hintButton} onClick={() => setHintOpen(true)}>
+            <img src={foxHint} width={25} height={25} alt="" />
+            <span>힌트보기</span>
+          </button>
+        )}
         <h1 className={styles.question}>{q.text}</h1>
         {!place && q.observationGuide && <p className={styles.guide}>{q.observationGuide}</p>}
       </section>
@@ -285,7 +288,10 @@ function HintPopup({ visitId, q, onClose }: { visitId: string; q: Question; onCl
         onClick={(e) => e.stopPropagation()}
       >
         <button type="button" className={styles.close} onClick={onClose} aria-label="힌트 닫기">
-          ×
+          {/* Figma "Close_round" 24 */}
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden>
+            <path d="M18 6 6 18M6 6l12 12" stroke="#4f2c02" strokeWidth="2" strokeLinecap="round" />
+          </svg>
         </button>
         <div className={styles.popupHead}>
           <img src={foxQuestion} width={70} height={70} alt="" />

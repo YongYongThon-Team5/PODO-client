@@ -550,6 +550,104 @@
         ]
       }
     },
+    "/api/visits/{visitId}/observations": {
+      "post": {
+        "tags": [
+          "관찰 사진"
+        ],
+        "summary": "관찰 사진 1~3장 업로드 및 생성 예약",
+        "operationId": "uploadObservation",
+        "parameters": [
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/State"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{visitId}/observations/{observationId}/retry": {
+      "post": {
+        "tags": [
+          "관찰 사진"
+        ],
+        "summary": "실패한 생성 작업을 현재 시도 번호로 재요청",
+        "operationId": "retryObservation",
+        "parameters": [
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "observationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetryBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/State"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
     "/api/visits/{visitId}/cancel": {
       "post": {
         "tags": [
@@ -1341,6 +1439,139 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{visitId}/observations/{observationId}": {
+      "get": {
+        "tags": [
+          "관찰 사진"
+        ],
+        "summary": "본인 관찰 생성 상태 조회",
+        "operationId": "getObservation",
+        "parameters": [
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "observationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/State"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{visitId}/observations/{observationId}/images/{imageId}": {
+      "get": {
+        "tags": [
+          "관찰 사진"
+        ],
+        "summary": "본인 관찰 사진 조회",
+        "operationId": "readObservationImage",
+        "parameters": [
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "observationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "imageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{visitId}/observations/latest": {
+      "get": {
+        "tags": [
+          "관찰 사진"
+        ],
+        "summary": "방문의 최신 관찰 생성 상태 조회",
+        "operationId": "getLatestObservation",
+        "parameters": [
+          {
+            "name": "visitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/State"
                 }
               }
             }
@@ -2422,6 +2653,74 @@
           "submittedAnswer",
           "text",
           "viewedHintSteps"
+        ]
+      },
+      "ImageView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "position": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "contentUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "State": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "visitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "generationStatus": {
+            "type": "string"
+          },
+          "attemptCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failureCode": {
+            "type": "string"
+          },
+          "retryAvailable": {
+            "type": "boolean"
+          },
+          "startAvailable": {
+            "type": "boolean"
+          },
+          "introduction": {
+            "type": "string"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImageView"
+            }
+          }
+        }
+      },
+      "RetryBody": {
+        "type": "object",
+        "properties": {
+          "expectedAttempt": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 3,
+            "minimum": 1
+          }
+        },
+        "required": [
+          "expectedAttempt"
         ]
       },
       "RecommendationRequest": {

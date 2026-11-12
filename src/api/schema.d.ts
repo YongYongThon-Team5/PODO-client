@@ -123,6 +123,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/visits/{visitId}/observations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 관찰 사진 1~3장 업로드 및 생성 예약 */
+        post: operations["uploadObservation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/visits/{visitId}/observations/{observationId}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 실패한 생성 작업을 현재 시도 번호로 재요청 */
+        post: operations["retryObservation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/visits/{visitId}/cancel": {
         parameters: {
             query?: never;
@@ -302,6 +336,57 @@ export interface paths {
          *
          */
         get: operations["getQuiz"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/visits/{visitId}/observations/{observationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 본인 관찰 생성 상태 조회 */
+        get: operations["getObservation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/visits/{visitId}/observations/{observationId}/images/{imageId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 본인 관찰 사진 조회 */
+        get: operations["readObservationImage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/visits/{visitId}/observations/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 방문의 최신 관찰 생성 상태 조회 */
+        get: operations["getLatestObservation"];
         put?: never;
         post?: never;
         delete?: never;
@@ -683,6 +768,31 @@ export interface components {
             /** @description O / X 또는 미응답 null */
             submittedAnswer: string | null;
             feedback: components["schemas"]["NullableQuizFeedback"];
+        };
+        ImageView: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: int32 */
+            position?: number;
+            contentUrl?: string;
+        };
+        State: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            visitId?: string;
+            generationStatus?: string;
+            /** Format: int32 */
+            attemptCount?: number;
+            failureCode?: string;
+            retryAvailable?: boolean;
+            startAvailable?: boolean;
+            introduction?: string;
+            images?: components["schemas"]["ImageView"][];
+        };
+        RetryBody: {
+            /** Format: int32 */
+            expectedAttempt: number;
         };
         RecommendationRequest: {
             /**
@@ -1394,6 +1504,57 @@ export interface operations {
             };
         };
     };
+    uploadObservation: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                visitId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["State"];
+                };
+            };
+        };
+    };
+    retryObservation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                visitId: string;
+                observationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RetryBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["State"];
+                };
+            };
+        };
+    };
     cancelVisit: {
         parameters: {
             query?: never;
@@ -1980,6 +2141,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getObservation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                visitId: string;
+                observationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["State"];
+                };
+            };
+        };
+    };
+    readObservationImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                visitId: string;
+                observationId: string;
+                imageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+        };
+    };
+    getLatestObservation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                visitId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["State"];
                 };
             };
         };

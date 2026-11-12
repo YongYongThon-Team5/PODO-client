@@ -18,21 +18,16 @@ import {
   type CompletedPlace,
 } from '../api/queries';
 import { formatDotDate, toIsoDate } from '../lib/format';
+import { readPrefs, writePrefs } from '../lib/prefs';
 import { visitPath } from '../lib/quiz';
 import styles from './MyPage.module.css';
 
 const CARDS_PER_PAGE = 4;
 
-/** 다녀온 곳 수 → 레벨 (Figma 예시 "LV.3 아기 탐험가") */
-function level(completed: number) {
-  const lv = Math.min(completed + 1, 10);
-  const title = lv <= 3 ? '아기 탐험가' : lv <= 6 ? '꼬마 탐험가' : '용인 탐험대장';
-  return `LV.${lv} ${title}`;
-}
-
-/** Figma "마이": 프로필 → 여우 카드 → 탐험 카드 (4장씩 넘겨 보기) */
+/** Figma "마이"(11.11): 제목 → 프로필(전환 · 아이 프로필 · 위치권한 · 맞춤장소) → 탐험 카드 4장씩 → 로그아웃 · 회원탈퇴 */
 export default function MyPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const auth = useAuth();
   const profiles = useChildProfiles();
   const options = useProfileOptions();
@@ -41,11 +36,13 @@ export default function MyPage() {
   const places = useAllPlaces();
   const [editing, setEditing] = useState(false);
   const [page, setPage] = useState(0);
+  const [childId, setChildId] = useState<string | null>(() => readPrefs().childProfileId ?? null);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  const child = profiles.data?.[0];
-  const color = options.data?.colors?.find((c) => c.code === child?.colorCode)?.hex ?? '#ffefe4';
+  const list = profiles.data ?? [];
+  const child = list.find((p) => p.id === childId) ?? list[0];
+  const ring = options.data?.colors?.find((c) => c.code === child?.colorCode)?.hex ?? '#9feaf6';
   const photo = useProfileImageUrl(child?.profileImageId);
-  const count = completed.data?.summary.completedPlaceCount ?? 0;
 
   const cards = completed.data?.items ?? [];
   const pages = Math.max(1, Math.ceil(cards.length / CARDS_PER_PAGE));
@@ -62,9 +59,27 @@ export default function MyPage() {
     setPage(Math.round(el.scrollLeft / el.clientWidth));
   };
 
+  /** 전환: 아이가 여럿이면 다음 아이로, 한 명이면 아이 추가 */
+  const switchChild = () => {
+    if (list.length < 2) {
+      navigate('/signup');
+      return;
+    }
+    const next = list[(list.findIndex((p) => p.id === child?.id) + 1) % list.length];
+    setChildId(next.id);
+    writePrefs({ childProfileId: next.id });
+  };
+
+  const signOut = async () => {
+    await logout();
+    qc.clear();
+    navigate('/login', { replace: true });
+  };
+
   if (auth.status === 'signedOut') {
     return (
       <main className="screen">
+        <h1 className={styles.pageTitle}>마이페이지</h1>
         <div className={styles.signedOut}>
           <img src={foxHello} width={80} height={80} alt="" />
           <p>로그인하면 우리 아이 탐험 카드를 모아 볼 수 있어요</p>
@@ -78,31 +93,33 @@ export default function MyPage() {
   }
 
   return (
-    <main className={`screen ${styles.screen}`}>
+    <main className="screen">
+      <h1 className={styles.pageTitle}>마이페이지</h1>
       <div className={styles.scroll}>
-        <button
-          type="button"
-          className={styles.profile}
-          onClick={() => child && setEditing(true)}
-          disabled={!child}
-          aria-label="프로필 수정"
-        >
-          <span className={styles.avatar} style={{ background: color }}>
+        <section className={styles.profile}>
+          <span className={styles.avatar} style={{ borderColor: ring, boxShadow: `0 0 10px ${ring}` }}>
             {photo ? <img src={photo} alt="" /> : <UserIcon />}
           </span>
-          <span className={styles.profileText}>
-            <span className={styles.nameRow}>
+          <div className={styles.profileText}>
+            <div className={styles.nameRow}>
               <strong>{child ? `${child.nickname} 대원` : profiles.isPending ? '…' : '탐험 대원'}</strong>
-              <span className={styles.level}>{level(count)}</span>
-            </span>
-            <span className={styles.bio}>용인시 구석구석 역사와 자연을 기록중!</span>
-          </span>
-        </button>
-
-        <Link to="/conditions" className={styles.invite}>
-          <img src={foxHello} width={53} height={53} alt="" />
-          <span>같이 멋진 모험을 떠나보지 않을래?</span>
-        </Link>
+              <button type="button" className={styles.switch} onClick={switchChild}>
+                전환
+              </button>
+            </div>
+            <nav className={styles.links} aria-label="바로가기">
+              <button type="button" onClick={() => child && setEditing(true)} disabled={!child}>
+                아이 프로필 <Chevron />
+              </button>
+              <Link to="/location">
+                위치권한 <Chevron />
+              </Link>
+              <Link to="/conditions">
+                맞춤장소 <Chevron />
+              </Link>
+            </nav>
+          </div>
+        </section>
 
         <h2 className={styles.cardsTitle}>탐험 카드</h2>
         <div className={styles.pages} onScroll={onScroll}>
@@ -124,7 +141,7 @@ export default function MyPage() {
                   <li key={`empty-${k}`}>
                     <div className={`${styles.card} ${styles.cardEmpty}`}>
                       <span className={styles.cardImage}>?</span>
-                      <span className={styles.cardName}>
+                      <span className={styles.cardActivity}>
                         {cards.length === 0 && k === 0 ? '첫 탐험을 떠나 볼까요?' : '다음 탐험 카드'}
                       </span>
                     </div>
@@ -139,6 +156,22 @@ export default function MyPage() {
             <li key={i} className={i === page ? styles.dotOn : undefined} />
           ))}
         </ol>
+
+        <div className={styles.fill} />
+        {notice && (
+          <p className={styles.notice} role="status">
+            {notice}
+          </p>
+        )}
+        <div className={styles.account}>
+          <button type="button" onClick={signOut}>
+            로그아웃
+          </button>
+          {/* 회원탈퇴 API가 아직 없어 안내만 한다 */}
+          <button type="button" onClick={() => setNotice('회원탈퇴는 아직 준비 중이에요.')}>
+            회원탈퇴
+          </button>
+        </div>
       </div>
       <Gnb />
 
@@ -158,29 +191,18 @@ function ExploreCard({
   activity: string | null;
   visitId?: string;
 }) {
-  const body = (
-    <>
+  return (
+    <Link className={styles.card} to={visitId ? visitPath.complete(visitId) : `/map?place=${place.placeId}`}>
       {thumbnail ? <img className={styles.cardImage} src={thumbnail} alt="" /> : <span className={styles.cardImage} />}
-      <span className={styles.cardName}>{place.name}</span>
+      <span className={styles.cardPlace}>{place.name}</span>
       {activity && <span className={styles.cardActivity}>{activity}</span>}
       <span className={styles.cardDate}>{formatDotDate(toIsoDate(new Date(place.lastCompletedAt)))}</span>
-    </>
-  );
-  return visitId ? (
-    <Link className={styles.card} to={visitPath.complete(visitId)}>
-      {body}
-    </Link>
-  ) : (
-    <Link className={styles.card} to={`/map?place=${place.placeId}`}>
-      {body}
     </Link>
   );
 }
 
-/** 프로필 수정: 사진(업로드 → profileImageId) · 이름 · 로그아웃 */
+/** 아이 프로필: 사진(업로드 → profileImageId) · 이름 */
 function ProfileSheet({ child, photo, onClose }: { child: ChildProfile; photo: string | null; onClose: () => void }) {
-  const navigate = useNavigate();
-  const qc = useQueryClient();
   const patch = usePatchChildProfile();
   const upload = useUploadProfileImage();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -190,10 +212,7 @@ function ProfileSheet({ child, photo, onClose }: { child: ChildProfile; photo: s
 
   const save = (body: Parameters<typeof patch.mutate>[0]['body'], done?: () => void) => {
     setMessage(null);
-    patch.mutate(
-      { profileId: child.id, body },
-      { onSuccess: () => done?.(), onError: (e) => setMessage(e.message) },
-    );
+    patch.mutate({ profileId: child.id, body }, { onSuccess: () => done?.(), onError: (e) => setMessage(e.message) });
   };
 
   const changePhoto = (file: File | undefined) => {
@@ -215,22 +234,16 @@ function ProfileSheet({ child, photo, onClose }: { child: ChildProfile; photo: s
     else save({ nickname: name }, onClose);
   };
 
-  const signOut = async () => {
-    await logout();
-    qc.clear();
-    navigate('/login', { replace: true });
-  };
-
   return (
     <div className={styles.dim} onClick={onClose} role="presentation">
       <section
         className={styles.sheet}
         role="dialog"
         aria-modal="true"
-        aria-label="프로필 수정"
+        aria-label="아이 프로필"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className={styles.sheetTitle}>프로필 수정</h2>
+        <h2 className={styles.sheetTitle}>아이 프로필</h2>
 
         <div className={styles.photoRow}>
           <span className={`${styles.avatar} ${styles.avatarBig}`}>{photo ? <img src={photo} alt="" /> : <UserIcon />}</span>
@@ -270,20 +283,26 @@ function ProfileSheet({ child, photo, onClose }: { child: ChildProfile; photo: s
         <button type="button" className={styles.save} onClick={submit} disabled={busy}>
           {patch.isPending ? '저장 중…' : '저장'}
         </button>
-        <button type="button" className={styles.logout} onClick={signOut}>
-          로그아웃
-        </button>
       </section>
     </div>
   );
 }
 
-/** Figma "User_fill" 아이콘 */
+/** Figma "User_fill" 아이콘 (28) */
 function UserIcon() {
   return (
-    <svg width="23" height="23" viewBox="0 0 23 23" aria-hidden>
-      <circle cx="11.5" cy="7.5" r="5" fill="#ffffff" />
-      <path d="M2.9 20.6c.8-3.7 4.4-6.1 8.6-6.1s7.8 2.4 8.6 6.1c.1.5-.3.9-.8.9H3.7c-.5 0-.9-.4-.8-.9Z" fill="#ffffff" />
+    <svg width="28" height="28" viewBox="0 0 23 23" aria-hidden>
+      <circle cx="11.5" cy="7.5" r="5" fill="#c1f1f9" />
+      <path d="M2.9 20.6c.8-3.7 4.4-6.1 8.6-6.1s7.8 2.4 8.6 6.1c.1.5-.3.9-.8.9H3.7c-.5 0-.9-.4-.8-.9Z" fill="#c1f1f9" />
+    </svg>
+  );
+}
+
+/** 바로가기 화살표 4x8 */
+function Chevron() {
+  return (
+    <svg width="5" height="9" viewBox="0 0 5 9" aria-hidden>
+      <path d="M.6.6 4.2 4.5.6 8.4" fill="none" stroke="#4f2c02" strokeOpacity="0.8" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   );
 }

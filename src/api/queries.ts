@@ -265,6 +265,129 @@ export function useQuiz(visitId: string | undefined) {
   });
 }
 
+/* ── 관찰 사진 (사진 추가 → 나만의 탐험 소개 생성) ── */
+
+export type Observation = Schemas['State'];
+
+/**
+ * 업로드 폼 필드 이름. Swagger에 요청 본문 형식이 빠져 있어 백엔드 확인 전까지 임시 값.
+ * 백엔드와 다르면 여기 한 곳만 바꾸면 된다.
+ */
+const OBSERVATION_FIELD = 'images';
+
+const observationKey = (visitId: string, observationId: string) =>
+  ['visits', visitId, 'observations', observationId] as const;
+const latestObservationKey = (visitId: string) => ['visits', visitId, 'observations', 'latest'] as const;
+
+/** 생성 작업이 끝난 상태인지 (시작 가능·재시도 가능·실패 코드 중 하나라도 있으면 끝) */
+export function observationSettled(o: Observation | undefined) {
+  if (!o) return false;
+  const status = (o.generationStatus ?? '').toUpperCase();
+  return (
+    !!o.startAvailable ||
+    !!o.retryAvailable ||
+    !!o.failureCode ||
+    ['READY', 'COMPLETED', 'SUCCEEDED', 'DONE', 'FAILED'].includes(status)
+  );
+}
+
+/** 사진으로 만들기가 성공해 퀴즈를 시작할 수 있는지 */
+export function observationSucceeded(o: Observation | undefined) {
+  if (!o) return false;
+  return !!o.startAvailable || ['READY', 'COMPLETED', 'SUCCEEDED', 'DONE'].includes((o.generationStatus ?? '').toUpperCase());
+}
+
+/** 관찰 사진 1~3장 업로드 + 생성 예약. 같은 키로 다시 보내도 한 번만 만들어진다 */
+export function useUploadObservation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ visitId, files, key }: { visitId: string; files: File[]; key: string }) =>
+      unwrap(
+        await api.POST('/api/visits/{visitId}/observations', {
+          params: { path: { visitId }, header: { 'Idempotency-Key': key } },
+          body: files as never,
+          bodySerializer: (list) => {
+            const form = new FormData();
+            for (const f of list as unknown as File[]) form.append(OBSERVATION_FIELD, f);
+            return form;
+          },
+        }),
+      ) as Observation,
+    onSuccess: (o, { visitId }) => {
+      if (o.id) qc.setQueryData(observationKey(visitId, o.id), o);
+      qc.setQueryData(latestObservationKey(visitId), o);
+    },
+  });
+}
+
+/** 생성 상태. 끝날 때까지 1.5초마다 다시 본다 */
+export function useObservation(visitId: string | undefined, observationId: string | null | undefined) {
+  return useQuery({
+    queryKey: observationKey(visitId ?? '', observationId ?? ''),
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/api/visits/{visitId}/observations/{observationId}', {
+          params: { path: { visitId: visitId!, observationId: observationId! } },
+        }),
+      ) as Observation,
+    enabled: !!visitId && !!observationId,
+    refetchInterval: (q) => (observationSettled(q.state.data) ? false : 1500),
+  });
+}
+
+/** 방문의 가장 최근 관찰 (없으면 null) */
+export function useLatestObservation(visitId: string | undefined) {
+  const auth = useAuth();
+  return useQuery({
+    queryKey: latestObservationKey(visitId ?? ''),
+    queryFn: async () => {
+      const res = await api.GET('/api/visits/{visitId}/observations/latest', {
+        params: { path: { visitId: visitId! } },
+      });
+      if (res.response.status === 404) return null;
+      return unwrap(res) as Observation;
+    },
+    enabled: !!visitId && auth.status === 'signedIn',
+  });
+}
+
+/** 실패한 생성 작업 다시 요청 (현재 시도 번호를 같이 보낸다) */
+export function useRetryObservation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ visitId, observation }: { visitId: string; observation: Observation }) =>
+      unwrap(
+        await api.POST('/api/visits/{visitId}/observations/{observationId}/retry', {
+          params: { path: { visitId, observationId: observation.id! } },
+          body: { expectedAttempt: observation.attemptCount ?? 1 },
+        }),
+      ) as Observation,
+    onSuccess: (o, { visitId }) => {
+      if (o.id) qc.setQueryData(observationKey(visitId, o.id), o);
+      qc.setQueryData(latestObservationKey(visitId), o);
+    },
+  });
+}
+
+/** 관찰 사진은 로그인해야 받을 수 있어 Bearer를 붙여 받은 뒤 화면용 주소로 바꾼다 */
+export function useObservationImageUrl(visitId?: string, observationId?: string, imageId?: string) {
+  const query = useQuery({
+    queryKey: ['observation-image', visitId, observationId, imageId],
+    queryFn: async () => {
+      const blob = unwrap(
+        await api.GET('/api/visits/{visitId}/observations/{observationId}/images/{imageId}', {
+          params: { path: { visitId: visitId!, observationId: observationId!, imageId: imageId! } },
+          parseAs: 'blob',
+        }),
+      ) as unknown as Blob;
+      return URL.createObjectURL(blob);
+    },
+    enabled: !!visitId && !!observationId && !!imageId,
+    staleTime: Infinity,
+  });
+  return query.data ?? null;
+}
+
 /** 정정된 퀴즈 세트로 교체 (quizAvailability가 CORRECTION_REQUIRED일 때) */
 export function useRestartQuiz() {
   const qc = useQueryClient();

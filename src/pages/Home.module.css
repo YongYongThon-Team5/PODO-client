@@ -73,6 +73,7 @@
 }
 
 .searchTitle {
+  color: var(--color-brown);
   font-size: 17px;
   font-weight: 700;
   line-height: 20px;
@@ -80,6 +81,7 @@
 
 .searchSub {
   margin-top: 18px;
+  color: var(--color-brown);
   font-size: 12px;
   line-height: 20px;
 }

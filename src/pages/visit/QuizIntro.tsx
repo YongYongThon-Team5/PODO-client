@@ -4,7 +4,15 @@ import LoadError from '../../components/LoadError';
 import LoadingGate from '../../components/LoadingGate';
 import foxSit from '../../assets/fox-sit.png';
 import speakerIcon from '../../assets/icon-speaker.svg';
-import { useAuth, usePlace, useQuiz, useRestartQuiz, useVisit } from '../../api/queries';
+import {
+  useAuth,
+  useLatestObservation,
+  useObservationImageUrl,
+  usePlace,
+  useQuiz,
+  useRestartQuiz,
+  useVisit,
+} from '../../api/queries';
 import { guideLine, guidePlace, nextUnanswered, preloadImages, speak, visitPath } from '../../lib/quiz';
 import { toIsoDate } from '../../lib/format';
 import foxHello from '../../assets/fox-hello.png';
@@ -22,6 +30,11 @@ export default function QuizIntro() {
   // 다음 화면(탐험 시작)이 쓰는 오늘 날씨까지 같은 요청으로 미리 받는다
   const place = usePlace(visit.data?.placeId, toIsoDate(new Date()));
   const restart = useRestartQuiz();
+  // 사진 추가에서 올린 관찰 사진과, 그 사진으로 만든 소개 문구가 있으면 먼저 쓴다
+  const observation = useLatestObservation(visit.data?.status === 'PLANNED' ? undefined : visitId);
+  const obs = observation.data;
+  const firstImage = obs?.images?.slice().sort((a, b) => (a.position ?? 0) - (b.position ?? 0))[0];
+  const myPhoto = useObservationImageUrl(visitId, obs?.id, firstImage?.id);
 
   if (auth.status === 'signedOut') return <Navigate to="/login" replace />;
   if (visit.data?.status === 'PLANNED') return <Navigate to={visitPath.photos(visit.data.id)} replace />;
@@ -30,8 +43,8 @@ export default function QuizIntro() {
   const questions = q ? [...q.questions].sort((a, b) => a.position - b.position) : [];
   const next = q ? nextUnanswered(q) : undefined;
   const name = visit.data?.placeName ?? '';
-  const intro = q?.introduction?.trim() || DEFAULT_INTRO;
-  const photo = place.data?.images[0]?.url ?? place.data?.thumbnailUrl;
+  const intro = obs?.introduction?.trim() || q?.introduction?.trim() || DEFAULT_INTRO;
+  const photo = myPhoto ?? place.data?.images[0]?.url ?? place.data?.thumbnailUrl;
   const started = (q?.answeredCount ?? 0) > 0;
   const fox = guideLine(next, started ? '다음' : '첫');
 

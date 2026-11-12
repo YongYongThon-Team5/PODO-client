@@ -23,6 +23,7 @@ export default function ExploreStart() {
   const today = toIsoDate(new Date());
   const place = usePlace(visit.data?.placeId, today);
   const [retry, setRetry] = useState(0);
+  const [message, setMessage] = useState<string | null>(null);
   const arrival = useArrivalCheck(place.data, retry);
 
   if (auth.status === 'signedOut') return <Navigate to="/login" replace />;
@@ -58,10 +59,21 @@ export default function ExploreStart() {
   return (
     <FlowScreen
       title={visit.data ? `${visit.data.placeName} 도착` : '탐험 시작'}
+      message={message}
       footer={
-        <button type="button" className={flow.primary} onClick={start} disabled={!quiz.data}>
-          퀴즈 시작
-        </button>
+        <div className={flow.row}>
+          {/* Figma 메모 "나이 연령대로 맞는 난이도 퀴즈" — 난이도별 퀴즈 API가 아직 없어 안내만 한다 */}
+          <button
+            type="button"
+            className={flow.secondary}
+            onClick={() => setMessage('고학년 퀴즈는 준비 중이에요. 지금은 OX 퀴즈로 시작해 주세요.')}
+          >
+            고학년 퀴즈
+          </button>
+          <button type="button" className={flow.primary} onClick={start} disabled={!quiz.data}>
+            OX 퀴즈
+          </button>
+        </div>
       }
     >
       {visit.isError ? (
