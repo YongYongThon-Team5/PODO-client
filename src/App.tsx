@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { restoreSession } from './api/auth';
+import { warmUpImages } from './lib/warmup';
 import Splash from './pages/Splash';
 import Onboarding from './pages/Onboarding';
 import Login from './pages/Login';
@@ -26,6 +27,7 @@ export default function App() {
   // 새로고침해도 Refresh 쿠키가 살아 있으면 로그인 상태로 복구
   useEffect(() => {
     void restoreSession();
+    warmUpImages();
   }, []);
 
   return (

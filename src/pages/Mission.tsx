@@ -15,6 +15,7 @@ import {
 import { formatShortDate } from '../lib/format';
 import { guideLine, nextUnanswered, visitPath } from '../lib/quiz';
 import { DISTRICT_LABEL } from './visit/QuizComplete';
+import { useScrollMemory } from '../hooks/useScrollMemory';
 import styles from './Mission.module.css';
 
 type RowState = 'done' | 'current' | 'locked';
@@ -35,6 +36,7 @@ export default function Mission() {
   const lastDone = completed.data?.items[0];
   const lastVisit = useCompletedVisitOf(!v ? lastDone?.placeId : null);
   const cancel = useCancelVisit();
+  const scrollRef = useScrollMemory<HTMLDivElement>();
 
   const questions = quiz.data ? [...quiz.data.questions].sort((a, b) => a.position - b.position) : [];
   const total = questions.length || 3;
@@ -60,7 +62,7 @@ export default function Mission() {
 
   return (
     <main className={`screen ${styles.screen}`}>
-      <div className={styles.scroll}>
+      <div className={styles.scroll} ref={scrollRef}>
         <div className={styles.hero}>
           <h1 className={styles.heading}>
             {heading[0]}

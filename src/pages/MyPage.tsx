@@ -20,6 +20,7 @@ import {
 import { formatDotDate, toIsoDate } from '../lib/format';
 import { readPrefs, writePrefs } from '../lib/prefs';
 import { visitPath } from '../lib/quiz';
+import { useScrollMemory } from '../hooks/useScrollMemory';
 import styles from './MyPage.module.css';
 
 const CARDS_PER_PAGE = 4;
@@ -38,6 +39,9 @@ export default function MyPage() {
   const [page, setPage] = useState(0);
   const [childId, setChildId] = useState<string | null>(() => readPrefs().childProfileId ?? null);
   const [notice, setNotice] = useState<string | null>(null);
+  // 탐험 카드에서 결과를 보고 돌아오면 보던 쪽 그대로
+  const scrollRef = useScrollMemory<HTMLDivElement>();
+  const pagesRef = useScrollMemory<HTMLDivElement>('cards');
 
   const list = profiles.data ?? [];
   const child = list.find((p) => p.id === childId) ?? list[0];
@@ -95,7 +99,7 @@ export default function MyPage() {
   return (
     <main className="screen">
       <h1 className={styles.pageTitle}>마이페이지</h1>
-      <div className={styles.scroll}>
+      <div className={styles.scroll} ref={scrollRef}>
         <section className={styles.profile}>
           <span className={styles.avatar} style={{ borderColor: ring, boxShadow: `0 0 10px ${ring}` }}>
             {photo ? <img src={photo} alt="" /> : <UserIcon />}
@@ -122,7 +126,7 @@ export default function MyPage() {
         </section>
 
         <h2 className={styles.cardsTitle}>탐험 카드</h2>
-        <div className={styles.pages} onScroll={onScroll}>
+        <div className={styles.pages} onScroll={onScroll} ref={pagesRef}>
           {Array.from({ length: pages }, (_, i) => {
             const slice = cards.slice(i * CARDS_PER_PAGE, (i + 1) * CARDS_PER_PAGE);
             return (

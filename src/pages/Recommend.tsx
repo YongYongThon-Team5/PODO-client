@@ -15,6 +15,7 @@ import {
 } from '../api/queries';
 import { ENVIRONMENT_LABEL, formatShortDate } from '../lib/format';
 import { toPlaceUrl, type PlaceDetailState } from './PlaceDetail';
+import { useScrollMemory } from '../hooks/useScrollMemory';
 import styles from './Recommend.module.css';
 
 /** Figma "맞춤 장소 목록" — /recommend?date=YYYY-MM-DD&purpose=CODE&district=CODE&child=UUID */
@@ -25,6 +26,7 @@ export default function Recommend() {
   const options = useRecommendationOptions();
   const profiles = useChildProfiles();
   const profileOptions = useProfileOptions();
+  const scrollRef = useScrollMemory<HTMLDivElement>();
 
   const date = params.get('date');
   const purpose = params.get('purpose');
@@ -80,7 +82,7 @@ export default function Recommend() {
       <main className="screen">
         <PageHeader title="맞춤 장소 목록" />
 
-        <div className={styles.scroll}>
+        <div className={styles.scroll} ref={scrollRef}>
           <div className={styles.chips}>
             <Chip variant="filled">{formatShortDate(date)}</Chip>
             {purposeLabel && <Chip variant="filled">{purposeLabel}</Chip>}

@@ -81,6 +81,30 @@ a {
   text-decoration: none;
 }
 
+/* 터치 사용감: 두 번 누르기 확대 대기(약 0.3초)를 없애고, 누르는 동안만 살짝 흐려져 눌린 느낌을 준다 */
+a,
+button {
+  touch-action: manipulation;
+  transition: opacity 120ms ease-out;
+}
+
+button {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+a:active,
+button:not(:disabled):active {
+  opacity: 0.8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a,
+  button {
+    transition: none;
+  }
+}
+
 img {
   display: block;
 }
@@ -135,6 +159,8 @@ img {
 /* 앱 안 스크롤 영역은 휴대폰처럼 스크롤바가 폭을 차지하지 않게 */
 .screen * {
   scrollbar-width: none;
+  /* 안쪽 목록 끝에서 바깥 화면까지 같이 끌려가지 않게 */
+  overscroll-behavior: contain;
 }
 
 .screen *::-webkit-scrollbar {
