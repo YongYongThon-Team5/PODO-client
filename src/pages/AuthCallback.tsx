@@ -5,8 +5,8 @@ import { api } from '../api/client';
 import styles from './AuthCallback.module.css';
 
 /**
- * 카카오 로그인 뒤 백엔드가 보내 주는 프론트 주소 (/auth/callback?error=...)
- * TODO: 백엔드와 실제 이동 주소·오류 파라미터 이름 확정 (docs/api-integration.md 6장)
+ * 카카오 로그인 뒤 백엔드가 보내 주는 프론트 주소.
+ * 실패하면 /auth/callback?error=login_failed 로 온다 (11.13 서버 응답으로 확인).
  */
 export default function AuthCallback() {
   const navigate = useNavigate();

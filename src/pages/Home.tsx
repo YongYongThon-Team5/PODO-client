@@ -7,6 +7,8 @@ import {
   useActiveVisit,
   useAuth,
   useChildProfiles,
+  useCompletedPlaces,
+  useCompletedVisits,
   usePlace,
   usePopularPlaces,
   useProfileOptions,
@@ -16,6 +18,7 @@ import {
 } from '../api/queries';
 import { ENVIRONMENT_LABEL, formatShortDate, shortAddress, upcomingSaturday, withJosaWa } from '../lib/format';
 import { toPlaceUrl } from './PlaceDetail';
+import { useScrollMemory } from '../hooks/useScrollMemory';
 import styles from './Home.module.css';
 
 // 인기 탐험지 카테고리 → 장소의 관심사 코드 (profile-options) 또는 실내 여부
@@ -45,6 +48,11 @@ export default function Home() {
   const profiles = useChildProfiles();
   const nickname = profiles.data?.[0]?.nickname;
   const signedIn = auth.status === 'signedIn';
+  // 장소 상세에서 뒤로 오면 보던 위치 그대로
+  const scrollRef = useScrollMemory<HTMLDivElement>();
+  // 지도·마이페이지가 쓰는 탐험 기록을 미리 받아 탭을 눌렀을 때 바로 보이게
+  useCompletedPlaces();
+  useCompletedVisits();
 
   // 방문 예정 장소는 방문일 날씨와 함께 한 번 불러와 날씨 상자·방문 예정 카드가 같이 쓴다
   const visit = useActiveVisit();
@@ -71,7 +79,7 @@ export default function Home() {
 
   return (
     <main className={`screen ${styles.screen}`}>
-      <div className={styles.scroll}>
+      <div className={styles.scroll} ref={scrollRef}>
         <div className={styles.hero}>
           <span className={styles.fox}>
             <span className={styles.foxShadow} aria-hidden />
@@ -147,6 +155,8 @@ function PlannedVisit({ signedIn, visit, place }: PlannedVisitProps) {
 }
 
 function PopularPlaces() {
+  // 옆으로 넘겨 보던 위치도 기억
+  const placesRef = useScrollMemory<HTMLUListElement>('popular');
   const popular = usePopularPlaces();
   const profileOptions = useProfileOptions();
   const recOptions = useRecommendationOptions();
@@ -194,7 +204,7 @@ function PopularPlaces() {
       </div>
 
       {items.length > 0 ? (
-        <ul className={styles.places}>
+        <ul className={styles.places} ref={placesRef}>
           {items.map(({ place }) => (
             <li key={place.id}>
               <Link className={styles.place} to={toPlaceUrl(place.id, { source: 'POPULAR' })}>
