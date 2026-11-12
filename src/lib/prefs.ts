@@ -9,6 +9,8 @@ type Prefs = {
   districtCode?: string | null;
   /** 위치 권한 허용 여부 */
   locationAllowed?: boolean;
+  /** 마이페이지에서 "전환"으로 고른 아이 */
+  childProfileId?: string | null;
 };
 
 export function readPrefs(): Prefs {

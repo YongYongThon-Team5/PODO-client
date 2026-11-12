@@ -160,3 +160,9 @@
   line-height: 14px;
   color: var(--color-gray-500);
 }
+
+/* 사진으로 퀴즈 만들기 실패·지연 */
+.failed {
+  flex: none;
+  margin-top: 60px;
+}

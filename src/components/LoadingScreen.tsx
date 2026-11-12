@@ -17,11 +17,12 @@ export const LOADING_MESSAGES = {
 export type LoadingType = keyof typeof LOADING_MESSAGES;
 
 /**
- * 말풍선 왼쪽 끝 = 화면 가운데 - 82 (Figma x 119). 글이 길면 오른쪽으로 늘어난다.
- * Figma 퀴즈 문구만 Noto 12px로 남아 폭이 넓어 x 87에서 시작했는데,
- * Pretendard로 맞추면 119에서 시작해도 오른쪽 끝이 다른 말풍선 범위(~352) 안이라 통일했다.
+ * 말풍선 왼쪽 끝 = 화면 가운데 기준 (Figma x 119 → -82). 글이 길면 오른쪽으로 늘어난다.
+ * 맞춤 장소 문구는 짧아 Figma에서 x 151(-50)에 둔다.
+ * Figma 퀴즈 문구만 Noto 12px로 남아 폭이 넓어 x 87에서 시작하는데,
+ * Pretendard로 맞추면 119에서 시작해도 오른쪽 끝이 다른 말풍선 범위(~352) 안이라 119로 둔다.
  */
-const BUBBLE_LEFT = -82;
+const BUBBLE_LEFT: Record<LoadingType, number> = { recommend: -50, map: -82, place: -82, quiz: -82, mission: -82 };
 
 /** 다 찬 뒤 여우가 한 번 폴짝 뛰는 시간 — CSS와 같은 값 */
 const FINISH_HOP_MS = 450;
@@ -49,7 +50,7 @@ export default function LoadingScreen({ type, progress, onFinish }: Props) {
       <img className={styles.background} src={background} alt="" />
 
       <Spacer grow={233} />
-      <SpeechBubble leftFromCenter={BUBBLE_LEFT}>{LOADING_MESSAGES[type]}</SpeechBubble>
+      <SpeechBubble leftFromCenter={BUBBLE_LEFT[type]}>{LOADING_MESSAGES[type]}</SpeechBubble>
 
       <div className={`${styles.walker} ${finished ? styles.finished : ''}`}>
         <span className={styles.shadow} />

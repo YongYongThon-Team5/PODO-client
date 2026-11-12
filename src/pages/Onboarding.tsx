@@ -44,7 +44,7 @@ const SLIDES: ReactNode[] = [
       <span className={styles.oxFoxShadow} />
       <img src={foxOx} alt="O와 X 깃발을 든 여우" />
     </div>
-    <h1 className={`${styles.title} ${styles.titleSmall}`}>직접 보고, OX 퀴즈 3문제로 확인해요</h1>
+    <h1 className={`${styles.title} ${styles.titleSmall}`}>직접 보고, 퀴즈 3문제로 확인해요</h1>
     <p className={styles.desc}>문제는 장소 안내판·전시물에서 나와요</p>
     <p className={styles.descNext}>막히면 미리 준비된 힌트</p>
     <Spacer grow={204} />

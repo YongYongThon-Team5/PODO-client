@@ -78,6 +78,7 @@ src/mocks/           # MSW: Swagger에 아직 없는 B·C API 임시 응답
 | 5 | visits · report | 방문 예정·방문했어요 | 목록·등록(`Idempotency-Key`)·상세·예정일 변경·report 연결 (`PlaceDetail`·`VisitPhotos`·`Mission`). report가 409이고 예정일이 오늘이 아니면 PATCH로 오늘로 바꾼 뒤 다시 report. 취소는 미션 탭 "방문 예정 취소"로 연결 |
 | 6 | quiz · answers · hint-views · restart | OX 퀴즈 | 연결 (`QuizIntro`·`QuizQuestion`·`QuizCheer`·`Mission`). 첫 답만 저장되므로 "다시 한 번 더"는 해설의 정답과 화면에서만 비교 |
 | 7 | places(목록) · me/completed-places | 탐방 지도·탐험 완료 | 연결 (`MapPage`·`QuizComplete`). 지도는 Figma 용인 그림 위에 위경도를 비례해 찍음 |
+| 8 | visits/{id}/observations (업로드 · 상태 · 최신 · 재시도 · 사진) | 사진 추가 → 에피소드 소개 | 연결 (`VisitPhotos`·`QuizIntro`). 사진 1~3장 업로드(`Idempotency-Key`) → 1.5초마다 상태 확인 → 끝나면 report → 에피소드 소개(내 사진·생성된 소개 문구). 실패하면 다시 시도 / 사진 없이 시작 |
 
 ## 6. 백엔드에 요청할 것
 
@@ -92,6 +93,8 @@ src/mocks/           # MSW: Swagger에 아직 없는 B·C API 임시 응답
    - 인증 API의 401·403·오류 코드 응답 명시
    - B·C API와 `profile-images` 추가
 6. **운영 데이터**: `GET /api/profile-options`의 `ageBands`가 현재 빈 배열 → 회원가입 나이 선택지가 비어 보임
-7. **방문 사진 업로드 API**: Figma "사진 추가"(3장 선택·전송)에 맞는 API가 없음 → 지금은 사진을 기기 화면에서만 보여 주고 전송하지 않음
+7. **관찰 사진 업로드 형식**: Swagger에 `POST /visits/{id}/observations` 요청 본문이 없음 → 지금은 multipart `images` 필드로 보냄(`OBSERVATION_FIELD`). 필드 이름과 `generationStatus` 값 목록(생성 중·성공·실패) 확인 필요
 8. **report 조건**: 예정일이 오늘이 아닌 방문을 report하면 409인지, 그때 PATCH 후 report하는 흐름이 맞는지
 9. **observationGuide 형식**: Figma는 "입구 안내도"처럼 짧은 위치 이름 → 실제 데이터도 짧은 이름인지 (12자 넘으면 문장으로 보고 따로 보여 줌)
+10. **회원탈퇴 API**: Figma 마이페이지에 "회원탈퇴"가 있는데 API가 없음 → 지금은 "준비 중" 안내
+11. **난이도별 퀴즈**: Figma 탐험 시작에 "고학년 퀴즈 / OX 퀴즈" 버튼과 "나이 연령대로 맞는 난이도 퀴즈" 메모가 있는데 API가 없음 → 지금은 OX 퀴즈만 시작

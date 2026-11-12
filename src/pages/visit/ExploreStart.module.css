@@ -1,4 +1,4 @@
-/* Figma "탐험 시작": 여우 182(66) · 말풍선 112,186 → 방문 확인 276(100) → 안내 404(128) → 버튼 674 */
+/* Figma "탐험 시작"(11.13): 여우 131(66) · 말풍선 112,135 → 방문 확인 225(100) → 안내 353(128) → 버튼 674 (고학년 퀴즈 / OX 퀴즈) */
 .error {
   margin-top: 40px;
 }
@@ -8,7 +8,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  margin-top: 87.5px;
+  margin-top: 36.5px;
   padding-left: 9px;
 }
 
