@@ -18,6 +18,7 @@ import {
   type CompletedPlace,
 } from '../api/queries';
 import { formatDotDate, toIsoDate } from '../lib/format';
+import { childColorHex } from '../lib/childColors';
 import { readPrefs, writePrefs } from '../lib/prefs';
 import { visitPath } from '../lib/quiz';
 import { useScrollMemory } from '../hooks/useScrollMemory';
@@ -45,7 +46,8 @@ export default function MyPage() {
 
   const list = profiles.data ?? [];
   const child = list.find((p) => p.id === childId) ?? list[0];
-  const ring = options.data?.colors?.find((c) => c.code === child?.colorCode)?.hex ?? '#9feaf6';
+  // 프로필 사진 테두리: 아이 색 (Figma 색 기준)
+  const ring = childColorHex(child?.colorCode, options.data?.colors?.find((c) => c.code === child?.colorCode)?.hex);
   const photo = useProfileImageUrl(child?.profileImageId);
 
   const cards = completed.data?.items ?? [];

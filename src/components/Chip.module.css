@@ -25,11 +25,11 @@
   font-family: var(--font-pretendard);
 }
 
-/* 홈 카테고리: 52x32, 여백 8/14, 테두리 1 #d5dae0, Pretendard 13 */
+/* 홈 카테고리: 52x32, 여백 8/14, 테두리 1 #4f2c02 (Figma 11.13), Pretendard 13 */
 .gray {
   height: 32px;
   padding: 0 14px;
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--color-brown);
   background: #ffffff;
 }
 
