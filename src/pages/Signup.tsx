@@ -8,6 +8,7 @@ import PageHeader from '../components/PageHeader';
 import { ApiError } from '../api/errors';
 import { useChildProfiles, useCreateChildProfile, useProfileOptions } from '../api/queries';
 import styles from './Signup.module.css';
+import { figmaColorOptions } from '../lib/childColors';
 
 type Form = {
   nickname: string;
@@ -34,7 +35,8 @@ export default function Signup() {
   const opt = options.data;
   const active = <T extends { active?: boolean }>(list: T[] | undefined) => (list ?? []).filter((o) => o.active !== false);
   const usedColors = new Set((profiles.data ?? []).map((p) => p.colorCode));
-  const colors = active(opt?.colors);
+  // 화면에는 Figma 색(파스텔 4가지)을 그리고, 저장은 서버 색 코드로 한다
+  const colors = figmaColorOptions(active(opt?.colors));
 
   // 색은 서버 필수값이라, 고르지 않으면 아직 안 쓴 첫 색으로 정한다
   const pickColor = () =>
