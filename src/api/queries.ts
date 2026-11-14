@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
 import { getAuthState, subscribeAuth } from './auth';
 import { unwrap } from './errors';
+import { shrinkImage } from '../lib/image';
 import type { components } from './schema';
 
 export type Schemas = components['schemas'];
@@ -66,8 +67,10 @@ export function useCreateChildProfile() {
 
 export function useUploadProfileImage() {
   return useMutation({
-    mutationFn: async (file: File) =>
-      unwrap(
+    mutationFn: async (original: File) => {
+      // 큰 사진은 줄여서 보낸다 (요청 크기 한도 대비)
+      const file = await shrinkImage(original);
+      return unwrap(
         await api.POST('/api/profile-images', {
           body: { file: file as unknown as string },
           bodySerializer: (b) => {
@@ -76,7 +79,8 @@ export function useUploadProfileImage() {
             return form;
           },
         }),
-      ),
+      );
+    },
   });
 }
 
@@ -439,14 +443,16 @@ export function useUploadObservation() {
       visitId: string;
       files: File[];
       key: string;
-    }) =>
-      unwrap(
+    }) => {
+      // 큰 사진은 줄여서 보낸다 (요청 크기 한도 대비, 전송도 빨라짐)
+      const shrunk = await Promise.all(files.map(shrinkImage));
+      return unwrap(
         await api.POST('/api/visits/{visitId}/observations', {
           params: {
             path: { visitId },
             header: { 'Idempotency-Key': key },
           },
-          body: files as never,
+          body: shrunk as never,
           bodySerializer: (list) => {
             const form = new FormData();
 
@@ -457,7 +463,8 @@ export function useUploadObservation() {
             return form;
           },
         }),
-      ) as Observation,
+      ) as Observation;
+    },
     onSuccess: (o, { visitId }) => {
       if (o.id) {
         qc.setQueryData(observationKey(visitId, o.id), o);
