@@ -215,7 +215,11 @@ export default function VisitPhotos() {
       >
         <div className={styles.failed}>
           <h1 className={styles.title}>
-            {observationSettled(obs) ? '사진으로 퀴즈를 만들지 못했어요' : '사진을 살펴보는 데 시간이 걸려요'}
+            {obs?.generationStatus === 'SOURCE_NOT_READY'
+              ? '이 장소는 아직 사진으로 퀴즈를 만들 수 없어요'
+              : observationSettled(obs)
+                ? '사진으로 퀴즈를 만들지 못했어요'
+                : '사진을 살펴보는 데 시간이 걸려요'}
           </h1>
           <p className={styles.sub}>
             {obs?.retryAvailable

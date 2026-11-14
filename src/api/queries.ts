@@ -270,10 +270,16 @@ export function useQuiz(visitId: string | undefined) {
 export type Observation = Schemas['State'];
 
 /**
- * 업로드 폼 필드 이름. Swagger에 요청 본문 형식이 빠져 있어 백엔드 확인 전까지 임시 값.
- * 백엔드와 다르면 여기 한 곳만 바꾸면 된다.
+ * 업로드 폼 필드 이름. Swagger에는 요청 본문 형식이 빠져 있어,
+ * 서버 코드(ObservationController: request.getMultiFileMap().get("files"))로 확인한 값이다.
  */
-const OBSERVATION_FIELD = 'images';
+const OBSERVATION_FIELD = 'files';
+
+/**
+ * 서버의 생성 상태 값 (ObservationService):
+ * UPLOADED → GENERATING → READY(성공) / FAILED(재시도 가능) / SOURCE_NOT_READY(이 장소는 사진 퀴즈 재료가 없음)
+ */
+const OBSERVATION_DONE = ['READY', 'FAILED', 'SOURCE_NOT_READY'];
 
 const observationKey = (visitId: string, observationId: string) =>
   ['visits', visitId, 'observations', observationId] as const;
@@ -287,14 +293,14 @@ export function observationSettled(o: Observation | undefined) {
     !!o.startAvailable ||
     !!o.retryAvailable ||
     !!o.failureCode ||
-    ['READY', 'COMPLETED', 'SUCCEEDED', 'DONE', 'FAILED'].includes(status)
+    OBSERVATION_DONE.includes(status)
   );
 }
 
 /** 사진으로 만들기가 성공해 퀴즈를 시작할 수 있는지 */
 export function observationSucceeded(o: Observation | undefined) {
   if (!o) return false;
-  return !!o.startAvailable || ['READY', 'COMPLETED', 'SUCCEEDED', 'DONE'].includes((o.generationStatus ?? '').toUpperCase());
+  return !!o.startAvailable || (o.generationStatus ?? '').toUpperCase() === 'READY';
 }
 
 /** 관찰 사진 1~3장 업로드 + 생성 예약. 같은 키로 다시 보내도 한 번만 만들어진다 */
@@ -332,6 +338,8 @@ export function useObservation(visitId: string | undefined, observationId: strin
       ) as Observation,
     enabled: !!visitId && !!observationId,
     refetchInterval: (q) => (observationSettled(q.state.data) ? false : 1500),
+    // 사진을 보낸 뒤 잠깐 다른 앱을 봐도 생성 확인은 이어서 한다 (끝나면 멈춤)
+    refetchIntervalInBackground: true,
   });
 }
 
