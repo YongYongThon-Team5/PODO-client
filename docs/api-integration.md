@@ -22,8 +22,15 @@
 | 환경 | 방법 |
 |---|---|
 | 개발 | Vite 프록시: `localhost:5173/api/*` → `https://52.78.237.200/api/*` |
-| 배포 (추천) | **백엔드 Caddy가 프론트 빌드 파일도 서빙**: `/api/*`·`/swagger-ui/*` → Spring, 나머지 → `dist/` (SPA 폴백). 카카오 콜백 주소 변경 불필요 |
-| 배포 (대안) | Vercel `rewrites`로 `/api/*`를 서버로 프록시. 이 경우 카카오 Redirect URI를 Vercel 도메인으로 바꾸고 카카오 콘솔에 등록해야 함 |
+| 배포 A | **백엔드 Caddy가 프론트 빌드 파일도 서빙**: `/api/*` → Spring, 나머지 → `dist/` (SPA 폴백). 백엔드 설정 변경 불필요 |
+| 배포 B (Vercel) | `vercel.json`이 `/api/*`를 `https://52.78.237.200/api/*`로 프록시하고 나머지는 `index.html`로. 아래 백엔드 설정을 Vercel 고정 도메인으로 바꿔야 로그인이 됨 |
+
+**Vercel로 배포할 때 백엔드에서 바꿀 것** (서버 코드 `AuthProperties`·`AuthController` 기준, 2026.11.14 확인)
+- `API_ORIGIN` = Vercel 고정 도메인. 토큰 발급·로그아웃은 요청 `Origin`이 이 값과 같아야 하고, 로그인 뒤 이동 주소도 이 호스트여야 한다
+- `AUTH_SUCCESS_REDIRECT_URI` = `<도메인>/auth/callback`, `AUTH_FAILURE_REDIRECT_URI` = `<도메인>/auth/callback?error=login_failed`
+- `KAKAO_REDIRECT_URI` = `<도메인>/api/auth/callback/kakao`, 카카오 콘솔에 같은 Redirect URI와 사이트 도메인 등록
+- 바꾸면 IP 주소로 직접 들어가서는 로그인이 안 되고, Vercel 미리보기(PR) 주소에서도 로그인이 안 된다
+- 사진 업로드(최대 3장 × 5MB)가 Vercel 프록시를 지나므로 배포 후 큰 사진으로 업로드를 꼭 확인한다
 
 ## 3. 로그인 흐름
 
