@@ -769,27 +769,6 @@ export interface components {
             submittedAnswer: string | null;
             feedback: components["schemas"]["NullableQuizFeedback"];
         };
-        ImageView: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: int32 */
-            position?: number;
-            contentUrl?: string;
-        };
-        State: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            visitId?: string;
-            generationStatus?: string;
-            /** Format: int32 */
-            attemptCount?: number;
-            failureCode?: string;
-            retryAvailable?: boolean;
-            startAvailable?: boolean;
-            introduction?: string;
-            images?: components["schemas"]["ImageView"][];
-        };
         RetryBody: {
             /** Format: int32 */
             expectedAttempt: number;
@@ -1121,6 +1100,28 @@ export interface components {
         CsrfResponse: {
             csrfToken?: string;
         };
+        ObservationState: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            visitId: string;
+            /** @enum {string} */
+            generationStatus: "UPLOADED" | "GENERATING" | "READY" | "FAILED";
+            /** Format: int32 */
+            attemptCount: number;
+            failureCode: string | null;
+            retryAvailable: boolean;
+            startAvailable: boolean;
+            introduction: string | null;
+            images: components["schemas"]["ObservationImage"][];
+        };
+        ObservationImage: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            position: number;
+            contentUrl: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -1263,6 +1264,8 @@ export interface operations {
                 placeId?: string;
                 cursor?: string;
                 limit?: number;
+                /** @description COMPLETED_AT_DESC는 status=COMPLETED 단독 필터에서만 사용합니다. */
+                sort?: "CREATED_AT_DESC" | "COMPLETED_AT_DESC";
             };
             header?: never;
             path?: never;
@@ -1523,7 +1526,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["State"];
+                    "*/*": components["schemas"]["ObservationState"];
                 };
             };
         };
@@ -1550,7 +1553,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["State"];
+                    "*/*": components["schemas"]["ObservationState"];
                 };
             };
         };
@@ -2163,7 +2166,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["State"];
+                    "*/*": components["schemas"]["ObservationState"];
                 };
             };
         };
@@ -2209,7 +2212,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["State"];
+                    "*/*": components["schemas"]["ObservationState"];
                 };
             };
         };

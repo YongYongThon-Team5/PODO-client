@@ -10,6 +10,7 @@ import {
   observationSettled,
   observationSucceeded,
   useAuth,
+  useLatestObservation,
   useObservation,
   usePatchVisit,
   usePlace,
@@ -18,6 +19,7 @@ import {
   useUploadObservation,
   useVisit,
   type Visit,
+  type Observation,
 } from '../../api/queries';
 import { ApiError } from '../../api/errors';
 import { useLoadingProgress } from '../../hooks/useLoadingProgress';
@@ -38,8 +40,13 @@ type Photo = { url: string; file: File };
  * - 건너뛰기: 바로 방문 신고
  */
 export default function VisitPhotos() {
-  const navigate = useNavigate();
   const { visitId } = useParams();
+  if (!visitId) return <Navigate to="/mission" replace />;
+  return <PhotoFlow key={visitId} visitId={visitId} />;
+}
+
+function PhotoFlow({ visitId }: { visitId: string }) {
+  const navigate = useNavigate();
   const auth = useAuth();
   const visit = useVisit(visitId);
   // 에피소드 소개·탐험 시작과 같은 키(오늘 날씨 포함)로 받아 한 번만 요청
@@ -55,14 +62,18 @@ export default function VisitPhotos() {
   const [active, setActive] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
-  const [observationId, setObservationId] = useState<string | null>(null);
+  const [uploaded, setUploaded] = useState<Observation | null>(null);
+  const [checkRoundAfterWait, setCheckRoundAfterWait] = useState(0);
   const [waitedTooLong, setWaitedTooLong] = useState(false);
   // 사진을 고르면 위치를 다시 확인한다 (Figma "사진 선택 시 위치를 자동 검증합니다")
   const [checkRound, setCheckRound] = useState(0);
   const arrival = useArrivalCheck(place.data, checkRound);
 
+  const latest = useLatestObservation(visit.data?.status === 'PLANNED' ? visitId : undefined);
+  const observationId = uploaded?.id ?? latest.data?.id ?? null;
   const observation = useObservation(visitId, observationId);
-  const obs = observation.data;
+  const obs = observation.data ?? uploaded ?? latest.data ?? undefined;
+  const recovering = visit.data?.status === 'PLANNED' && !uploaded && (latest.isPending || latest.isFetching);
   const generated = observationSucceeded(obs);
   const settled = observationSettled(obs) || waitedTooLong || observation.isError;
   const progress = useLoadingProgress(!!observationId && settled);
@@ -78,17 +89,16 @@ export default function VisitPhotos() {
     setWaitedTooLong(false);
     const t = setTimeout(() => setWaitedTooLong(true), GENERATION_WAIT_MS);
     return () => clearTimeout(t);
-  }, [observationId, obs?.attemptCount]);
+  }, [observationId, obs?.attemptCount, checkRoundAfterWait]);
 
   const v = visit.data;
-  const busy = sending || report.isPending || patch.isPending || upload.isPending || retry.isPending;
+  const busy = recovering || sending || report.isPending || patch.isPending || upload.isPending || retry.isPending;
   const today = toIsoDate(new Date());
 
   const fail = (e: Error) => {
-    setObservationId(null);
     if (e instanceof ApiError && e.status === 401) navigate('/login');
-    else if (e instanceof ApiError && e.status === 409)
-      setMessage('이 장소 퀴즈를 아직 준비 중이에요. 잠시 후 다시 시도해 주세요.');
+    else if (e instanceof ApiError && e.code === 'QUIZ_NOT_READY')
+      setMessage('이 장소 퀴즈를 아직 준비 중이에요. 잠시 후 상태를 다시 확인해 주세요.');
     else setMessage(e.message);
   };
 
@@ -104,17 +114,16 @@ export default function VisitPhotos() {
   // 사진으로 만들기가 끝나면 바로 퀴즈로
   const doneRef = useRef(false);
   useEffect(() => {
-    if (!v || !observationId || !generated || doneRef.current) return;
+    if (!v || v.status !== 'PLANNED' || recovering || !observationId || !generated || message || doneRef.current) return;
     doneRef.current = true;
     ensureReported(v)
       .then((cur) => goQuiz(cur.id))
       .catch((e: Error) => {
-        doneRef.current = false;
         fail(e);
       });
     // 끝난 순간 한 번만 실행
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [generated, observationId, v]);
+  }, [generated, observationId, v, recovering, message]);
 
   if (auth.status === 'signedOut') return <Navigate to="/login" replace />;
 
@@ -140,7 +149,7 @@ export default function VisitPhotos() {
 
   /** 건너뛰기 / 사진 없이 시작: 바로 방문 신고 → 퀴즈 */
   const skip = async () => {
-    if (!v) return;
+    if (!v || busy) return;
     if (v.status !== 'PLANNED' && !observationId) {
       navigate(resumePath(v), { replace: true });
       return;
@@ -148,6 +157,13 @@ export default function VisitPhotos() {
     setMessage(null);
     setSending(true);
     try {
+      // 다른 탭이나 새로고침 전에 접수된 작업이 있으면 먼저 복구한다.
+      const current = await latest.refetch();
+      if (current.isError) throw current.error;
+      if (current.data) {
+        setUploaded(current.data);
+        return;
+      }
       goQuiz((await ensureReported(v)).id);
     } catch (e) {
       fail(e as Error);
@@ -158,26 +174,58 @@ export default function VisitPhotos() {
 
   /** 사진 전송: 관찰 사진 업로드 (생성 상태 확인과 퀴즈 이동은 위 effect) */
   const send = async () => {
-    if (!v || photos.length === 0) return;
+    if (!v || v.status !== 'PLANNED' || busy || observationId || latest.isError || photos.length === 0) return;
     setMessage(null);
     setSending(true);
     const files = photos.map((p) => p.file);
     try {
-      let cur =
+      const cur =
         v.status === 'PLANNED' && v.plannedDate !== today
           ? await patch.mutateAsync({ visitId: v.id, plannedDate: today })
           : v;
-      let o;
-      try {
-        o = await upload.mutateAsync({ visitId: cur.id, files, key: uploadKey.current });
-      } catch (e) {
-        // 방문 신고 뒤에만 올릴 수 있으면 신고하고 한 번 더
-        if (!(e instanceof ApiError && e.status === 409 && cur.status === 'PLANNED')) throw e;
-        cur = await ensureReported(cur);
-        o = await upload.mutateAsync({ visitId: cur.id, files, key: uploadKey.current });
+      const o = await upload.mutateAsync({ visitId: cur.id, files, key: uploadKey.current });
+      setUploaded(o);
+    } catch (e) {
+      fail(e as Error);
+      // 409나 응답 유실 때 report를 호출하지 않는다. 서버의 기존 작업을 조회한다.
+      if (!(e instanceof ApiError && e.status === 401)) {
+        const current = await latest.refetch();
+        if (current.data) {
+          setUploaded(current.data);
+          setMessage(null);
+        }
+        await visit.refetch();
       }
-      if (o.id) setObservationId(o.id);
-      else goQuiz((await ensureReported(cur)).id);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const retryGeneration = () => {
+    if (!v || !obs?.retryAvailable || busy) return;
+    setMessage(null);
+    doneRef.current = false;
+    retry.mutate({ visitId: v.id, observation: obs }, {
+      onSuccess: (o) => {
+        setUploaded(o);
+        setWaitedTooLong(false);
+        setCheckRoundAfterWait((n) => n + 1);
+      },
+      onError: fail,
+    });
+  };
+
+  const refreshGeneration = async () => {
+    setSending(true);
+    try {
+      const current = await observation.refetch();
+      if (current.isError) throw current.error;
+      if (current.data) setUploaded(current.data);
+      doneRef.current = false;
+      setMessage(null);
+      setWaitedTooLong(false);
+      setCheckRoundAfterWait((n) => n + 1);
+      await visit.refetch();
     } catch (e) {
       fail(e as Error);
     } finally {
@@ -185,27 +233,32 @@ export default function VisitPhotos() {
     }
   };
 
-  const retryGeneration = () => {
-    if (!v || !obs) return;
-    setMessage(null);
-    retry.mutate({ visitId: v.id, observation: obs }, { onError: fail });
-  };
-
-  // 사진을 보낸 뒤: Figma 흐름 "사진 첨부-후 → 로딩페이지 → 에피소드 소개"
-  if (observationId && (!settled || generated)) {
+  if (v && v.status !== 'PLANNED') return <Navigate to={resumePath(v)} replace />;
+  if (visit.isError || (!uploaded && latest.isError)) {
+    const error = visit.error ?? latest.error;
+    return (
+      <FlowScreen title="사진 추가">
+        <LoadError message={error?.message ?? '방문 정보를 확인하지 못했어요.'} onRetry={() => {
+          if (visit.isError) void visit.refetch();
+          else void latest.refetch();
+        }} />
+      </FlowScreen>
+    );
+  }
+  if (!v || recovering || (observationId && !message && (!settled || generated))) {
     return <LoadingScreen type="quiz" progress={generated ? 100 : progress} />;
   }
 
-  // 만들기 실패·지연: 다시 시도하거나 사진 없이 시작
-  if (observationId && settled && !generated) {
+  // 실패·지연·공개 대기에는 기존 버튼으로 상태 확인과 허용된 재시도만 제공한다.
+  if (observationId) {
     return (
       <FlowScreen
         title="사진 추가"
-        message={message}
+        message={message ?? observation.error?.message}
         footer={
           <div className={flow.row}>
-            <button type="button" className={flow.secondary} onClick={skip} disabled={busy}>
-              사진 없이 시작
+            <button type="button" className={flow.secondary} onClick={refreshGeneration} disabled={busy}>
+              상태 다시 확인
             </button>
             <button type="button" className={flow.primary} onClick={retryGeneration} disabled={busy || !obs?.retryAvailable}>
               {retry.isPending ? '잠시만요…' : '다시 시도'}
@@ -215,12 +268,16 @@ export default function VisitPhotos() {
       >
         <div className={styles.failed}>
           <h1 className={styles.title}>
-            {observationSettled(obs) ? '사진으로 퀴즈를 만들지 못했어요' : '사진을 살펴보는 데 시간이 걸려요'}
+            {obs?.generationStatus === 'FAILED'
+              ? '사진으로 퀴즈를 만들지 못했어요'
+              : obs?.generationStatus === 'READY'
+                ? '퀴즈 시작을 준비하고 있어요'
+                : '사진을 살펴보는 데 시간이 걸려요'}
           </h1>
           <p className={styles.sub}>
             {obs?.retryAvailable
-              ? '다시 시도하거나, 사진 없이 이 장소 퀴즈로 바로 시작할 수 있어요.'
-              : '사진 없이 이 장소 퀴즈로 바로 시작할 수 있어요.'}
+              ? '다시 시도하거나 현재 상태를 확인해 주세요.'
+              : '잠시 후 상태를 다시 확인해 주세요.'}
           </p>
         </div>
       </FlowScreen>
@@ -262,12 +319,7 @@ export default function VisitPhotos() {
         }}
       />
 
-      {visit.isError ? (
-        <div className={styles.error}>
-          <LoadError message={visit.error.message} onRetry={() => visit.refetch()} />
-        </div>
-      ) : (
-        <>
+      <>
           <p className={styles.chip}>
             <img src={medalIcon} width={14} height={14} alt="" />
             {v ? `${v.placeName} 미션` : '탐험 미션'}
@@ -339,8 +391,7 @@ export default function VisitPhotos() {
               </div>
             </>
           )}
-        </>
-      )}
+      </>
     </FlowScreen>
   );
 }

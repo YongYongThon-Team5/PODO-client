@@ -58,8 +58,8 @@ export default function QuizIntro() {
     else navigate(visitPath.question(visitId, next.position));
   };
 
-  // 탐험 시작의 여우와 첫 문제 사진을 미리 받아 둔다
-  preloadImages([foxHello, next?.referenceImageUrl]);
+  // 보호된 문제 사진은 문제 화면의 인증 요청으로 받는다.
+  preloadImages([foxHello]);
 
   const error = visit.error ?? quiz.error;
 

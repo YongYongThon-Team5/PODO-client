@@ -238,6 +238,20 @@
               "maximum": 100,
               "minimum": 1
             }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "COMPLETED_AT_DESC는 status=COMPLETED 단독 필터에서만 사용합니다.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CREATED_AT_DESC",
+                "COMPLETED_AT_DESC"
+              ],
+              "default": "CREATED_AT_DESC"
+            }
           }
         ],
         "responses": {
@@ -581,7 +595,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/State"
+                  "$ref": "#/components/schemas/ObservationState"
                 }
               }
             }
@@ -635,7 +649,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/State"
+                  "$ref": "#/components/schemas/ObservationState"
                 }
               }
             }
@@ -1482,7 +1496,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/State"
+                  "$ref": "#/components/schemas/ObservationState"
                 }
               }
             }
@@ -1571,7 +1585,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/State"
+                  "$ref": "#/components/schemas/ObservationState"
                 }
               }
             }
@@ -2654,60 +2668,6 @@
           "text",
           "viewedHintSteps"
         ]
-      },
-      "ImageView": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "position": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "contentUrl": {
-            "type": "string"
-          }
-        }
-      },
-      "State": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "visitId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "generationStatus": {
-            "type": "string"
-          },
-          "attemptCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "failureCode": {
-            "type": "string"
-          },
-          "retryAvailable": {
-            "type": "boolean"
-          },
-          "startAvailable": {
-            "type": "boolean"
-          },
-          "introduction": {
-            "type": "string"
-          },
-          "images": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ImageView"
-            }
-          }
-        }
       },
       "RetryBody": {
         "type": "object",
@@ -4054,6 +4014,96 @@
             "type": "string"
           }
         }
+      },
+      "ObservationState": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "visitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "generationStatus": {
+            "type": "string",
+            "enum": [
+              "UPLOADED",
+              "GENERATING",
+              "READY",
+              "FAILED"
+            ]
+          },
+          "attemptCount": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "failureCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "retryAvailable": {
+            "type": "boolean"
+          },
+          "startAvailable": {
+            "type": "boolean"
+          },
+          "introduction": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObservationImage"
+            },
+            "minItems": 1,
+            "maxItems": 3
+          }
+        },
+        "required": [
+          "id",
+          "visitId",
+          "generationStatus",
+          "attemptCount",
+          "failureCode",
+          "retryAvailable",
+          "startAvailable",
+          "introduction",
+          "images"
+        ],
+        "additionalProperties": false
+      },
+      "ObservationImage": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "position": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 3
+          },
+          "contentUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "position",
+          "contentUrl"
+        ],
+        "additionalProperties": false
       }
     },
     "securitySchemes": {

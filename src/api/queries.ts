@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
 import { getAuthState, subscribeAuth } from './auth';
@@ -199,7 +199,7 @@ export function useCompletedVisitOf(placeId: string | null | undefined) {
     queryKey: ['visits', 'completed', placeId],
     queryFn: async () =>
       unwrap(
-        await api.GET('/api/visits', { params: { query: { status: 'COMPLETED', placeId: placeId!, limit: 1 } } }),
+        await api.GET('/api/visits', { params: { query: { status: 'COMPLETED', placeId: placeId!, sort: 'COMPLETED_AT_DESC', limit: 1 } } }),
       ).items[0] ?? null,
     enabled: !!placeId && auth.status === 'signedIn',
   });
@@ -210,8 +210,21 @@ export function useCompletedVisits() {
   const auth = useAuth();
   return useQuery({
     queryKey: ['visits', 'completed', 'all'],
-    queryFn: async () =>
-      unwrap(await api.GET('/api/visits', { params: { query: { status: 'COMPLETED', limit: 100 } } })).items,
+    queryFn: async () => {
+      const items: Visit[] = [];
+      const seen = new Set<string>();
+      let cursor: string | undefined;
+      do {
+        const page = unwrap(await api.GET('/api/visits', {
+          params: { query: { status: 'COMPLETED', sort: 'COMPLETED_AT_DESC', limit: 100, cursor } },
+        }));
+        items.push(...page.items);
+        cursor = page.nextCursor ?? undefined;
+        if (cursor && seen.has(cursor)) throw new Error('기록 목록을 불러오지 못했어요. 다시 시도해 주세요.');
+        if (cursor) seen.add(cursor);
+      } while (cursor);
+      return items;
+    },
     enabled: auth.status === 'signedIn',
   });
 }
@@ -267,34 +280,22 @@ export function useQuiz(visitId: string | undefined) {
 
 /* ── 관찰 사진 (사진 추가 → 나만의 탐험 소개 생성) ── */
 
-export type Observation = Schemas['State'];
+export type Observation = Schemas['ObservationState'];
 
-/**
- * 업로드 폼 필드 이름. Swagger에 요청 본문 형식이 빠져 있어 백엔드 확인 전까지 임시 값.
- * 백엔드와 다르면 여기 한 곳만 바꾸면 된다.
- */
-const OBSERVATION_FIELD = 'images';
+/** 서버 multipart 계약: files 필드에 사진 1~3장을 반복해서 보낸다. */
+const OBSERVATION_FIELD = 'files';
 
 const observationKey = (visitId: string, observationId: string) =>
   ['visits', visitId, 'observations', observationId] as const;
 const latestObservationKey = (visitId: string) => ['visits', visitId, 'observations', 'latest'] as const;
 
-/** 생성 작업이 끝난 상태인지 (시작 가능·재시도 가능·실패 코드 중 하나라도 있으면 끝) */
+/** READY는 생성 완료다. 공개 여부와 실제 시작 가능 여부는 별도로 확인한다. */
 export function observationSettled(o: Observation | undefined) {
-  if (!o) return false;
-  const status = (o.generationStatus ?? '').toUpperCase();
-  return (
-    !!o.startAvailable ||
-    !!o.retryAvailable ||
-    !!o.failureCode ||
-    ['READY', 'COMPLETED', 'SUCCEEDED', 'DONE', 'FAILED'].includes(status)
-  );
+  return o?.generationStatus === 'READY' || o?.generationStatus === 'FAILED';
 }
 
-/** 사진으로 만들기가 성공해 퀴즈를 시작할 수 있는지 */
 export function observationSucceeded(o: Observation | undefined) {
-  if (!o) return false;
-  return !!o.startAvailable || ['READY', 'COMPLETED', 'SUCCEEDED', 'DONE'].includes((o.generationStatus ?? '').toUpperCase());
+  return o?.generationStatus === 'READY' && o.startAvailable === true;
 }
 
 /** 관찰 사진 1~3장 업로드 + 생성 예약. 같은 키로 다시 보내도 한 번만 만들어진다 */
@@ -348,6 +349,7 @@ export function useLatestObservation(visitId: string | undefined) {
       return unwrap(res) as Observation;
     },
     enabled: !!visitId && auth.status === 'signedIn',
+    refetchOnMount: 'always',
   });
 }
 
@@ -369,23 +371,47 @@ export function useRetryObservation() {
   });
 }
 
-/** 관찰 사진은 로그인해야 받을 수 있어 Bearer를 붙여 받은 뒤 화면용 주소로 바꾼다 */
+/** 인증 요청으로 받은 Blob을 캐시하고, 화면별 임시 주소는 사용이 끝나면 해제한다. */
 export function useObservationImageUrl(visitId?: string, observationId?: string, imageId?: string) {
+  const auth = useAuth();
   const query = useQuery({
     queryKey: ['observation-image', visitId, observationId, imageId],
-    queryFn: async () => {
-      const blob = unwrap(
-        await api.GET('/api/visits/{visitId}/observations/{observationId}/images/{imageId}', {
-          params: { path: { visitId: visitId!, observationId: observationId!, imageId: imageId! } },
-          parseAs: 'blob',
-        }),
-      ) as unknown as Blob;
-      return URL.createObjectURL(blob);
-    },
-    enabled: !!visitId && !!observationId && !!imageId,
+    queryFn: async () => unwrap(
+      await api.GET('/api/visits/{visitId}/observations/{observationId}/images/{imageId}', {
+        params: { path: { visitId: visitId!, observationId: observationId!, imageId: imageId! } },
+        parseAs: 'blob',
+      }),
+    ) as unknown as Blob,
+    enabled: !!visitId && !!observationId && !!imageId && auth.status === 'signedIn',
     staleTime: Infinity,
   });
-  return query.data ?? null;
+  const [objectUrl, setObjectUrl] = useState<{ blob: Blob; url: string } | null>(null);
+  useEffect(() => {
+    if (!query.data) return;
+    const url = URL.createObjectURL(query.data);
+    setObjectUrl({ blob: query.data, url });
+    return () => URL.revokeObjectURL(url);
+  }, [query.data]);
+  return auth.status === 'signedIn' && objectUrl?.blob === query.data ? objectUrl?.url ?? null : null;
+}
+
+/** 외부 공개 사진에는 토큰을 보내지 않고, 우리 관찰 사진만 인증 API로 받는다. */
+export function useReferenceImageUrl(referenceImageUrl?: string | null) {
+  let ids: RegExpMatchArray | null = null;
+  let isApiImage = false;
+  if (referenceImageUrl) {
+    try {
+      const url = new URL(referenceImageUrl, window.location.origin);
+      if (url.origin === window.location.origin) {
+        isApiImage = url.pathname.startsWith('/api/');
+        ids = url.pathname.match(/^\/api\/visits\/([0-9a-f-]{36})\/observations\/([0-9a-f-]{36})\/images\/([0-9a-f-]{36})$/i);
+      }
+    } catch {
+      isApiImage = true;
+    }
+  }
+  const authenticatedUrl = useObservationImageUrl(ids?.[1], ids?.[2], ids?.[3]);
+  return isApiImage ? authenticatedUrl : referenceImageUrl ?? null;
 }
 
 /** 정정된 퀴즈 세트로 교체 (quizAvailability가 CORRECTION_REQUIRED일 때) */
@@ -498,7 +524,20 @@ export function useCompletedPlaces() {
   const auth = useAuth();
   return useQuery({
     queryKey: queryKeys.completedPlaces,
-    queryFn: async () => unwrap(await api.GET('/api/me/completed-places', { params: { query: { limit: 100 } } })),
+    queryFn: async () => {
+      const first = unwrap(await api.GET('/api/me/completed-places', { params: { query: { limit: 100 } } }));
+      const items = [...first.items];
+      const seen = new Set<string>();
+      let cursor = first.nextCursor;
+      while (cursor) {
+        if (seen.has(cursor)) throw new Error('완료 장소를 불러오지 못했어요. 다시 시도해 주세요.');
+        seen.add(cursor);
+        const page = unwrap(await api.GET('/api/me/completed-places', { params: { query: { limit: 100, cursor } } }));
+        items.push(...page.items);
+        cursor = page.nextCursor;
+      }
+      return { ...first, items, nextCursor: null };
+    },
     enabled: auth.status === 'signedIn',
   });
 }

@@ -13,6 +13,7 @@ import foxWrong from '../../assets/fox-wrong.png';
 import {
   useAuth,
   useQuiz,
+  useReferenceImageUrl,
   useSubmitAnswer,
   useViewHint,
   type QuizFeedback,
@@ -96,7 +97,9 @@ function Step({ visitId, quiz, q }: { visitId: string; quiz: QuizProgress; q: Qu
 
   // 결과 화면 여우와 다음 문제 사진을 미리 받아 둔다
   const upcoming = quiz.questions.find((item) => item.position > q.position && !item.submittedAnswer);
-  preloadImages([foxRight, foxWrong, foxQuestion, upcoming?.referenceImageUrl]);
+  const referenceImageUrl = useReferenceImageUrl(q.referenceImageUrl);
+  const upcomingImageUrl = useReferenceImageUrl(upcoming?.referenceImageUrl);
+  preloadImages([foxRight, foxWrong, foxQuestion, upcomingImageUrl]);
   const submitted = !!q.submittedAnswer;
   const showResult = submitted && (!retrying || retryCorrect !== null);
   const correct = retrying && retryCorrect !== null ? retryCorrect : !!feedback?.isCorrect;
@@ -219,8 +222,8 @@ function Step({ visitId, quiz, q }: { visitId: string; quiz: QuizProgress; q: Qu
         ))}
       </ol>
 
-      {q.referenceImageUrl ? (
-        <img className={styles.photo} src={q.referenceImageUrl} alt="문제 참고 사진" />
+      {referenceImageUrl ? (
+        <img className={styles.photo} src={referenceImageUrl} alt="문제 참고 사진" />
       ) : (
         <span className={`${styles.photo} ${styles.photoEmpty}`}>
           {place ? `${place}에서 답을 찾아보세요` : '안내판에서 답을 찾아보세요'}
