@@ -4,6 +4,8 @@
  * - 프론트와 /api가 같은 출처여야 쿠키(SameSite=Strict)가 실린다. 개발은 Vite 프록시.
  */
 
+import { ApiError } from './errors';
+
 type AuthState = { status: 'unknown' | 'signedIn' | 'signedOut'; accountId: string | null };
 
 let accessToken: string | null = null;
@@ -87,6 +89,30 @@ export const restoreSession = refreshSession;
 export function startKakaoLogin() {
   // fetch가 아니라 페이지 이동이어야 카카오 인가 화면으로 넘어간다
   window.location.href = '/api/auth/login/kakao';
+}
+
+/**
+ * 회원탈퇴 (DELETE /api/me). 서버가 모든 세션을 끊고 삭제를 접수하면 202.
+ * Bearer + CSRF + Refresh 쿠키가 필요하다. 실패하면 ApiError를 던지고 로그인 상태는 그대로 둔다.
+ */
+export async function withdraw() {
+  const send = async (csrf: string) => {
+    const headers: Record<string, string> = { 'X-CSRF-Token': csrf };
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+    return fetch('/api/me', { method: 'DELETE', credentials: 'include', headers });
+  };
+
+  let res = await send(await getCsrfToken());
+  // CSRF가 회전됐으면 새로 받아서, Access가 만료됐으면 갱신해서 한 번 더
+  if (res.status === 403) res = await send(await getCsrfToken(true));
+  else if (res.status === 401 && (await refreshSession())) res = await send(await getCsrfToken());
+
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: ConstructorParameters<typeof ApiError>[1] } | null;
+    throw new ApiError(res.status, body?.error);
+  }
+  csrfToken = null;
+  clearSession();
 }
 
 export async function logout() {

@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import Gnb from '../components/Gnb';
 import foxHello from '../assets/fox-hello.png';
-import { logout } from '../api/auth';
+import { logout, withdraw } from '../api/auth';
+import { ApiError } from '../api/errors';
 import {
   useAllPlaces,
   useAuth,
@@ -40,6 +41,7 @@ export default function MyPage() {
   const [page, setPage] = useState(0);
   const [childId, setChildId] = useState<string | null>(() => readPrefs().childProfileId ?? null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [withdrawing, setWithdrawing] = useState(false);
   // 탐험 카드에서 결과를 보고 돌아오면 보던 쪽 그대로
   const scrollRef = useScrollMemory<HTMLDivElement>();
   const pagesRef = useScrollMemory<HTMLDivElement>('cards');
@@ -173,8 +175,7 @@ export default function MyPage() {
           <button type="button" onClick={signOut}>
             로그아웃
           </button>
-          {/* 회원탈퇴 API가 아직 없어 안내만 한다 */}
-          <button type="button" onClick={() => setNotice('회원탈퇴는 아직 준비 중이에요.')}>
+          <button type="button" onClick={() => setWithdrawing(true)}>
             회원탈퇴
           </button>
         </div>
@@ -182,7 +183,64 @@ export default function MyPage() {
       <Gnb />
 
       {editing && child && <ProfileSheet child={child} photo={photo} onClose={() => setEditing(false)} />}
+      {withdrawing && <WithdrawSheet onClose={() => setWithdrawing(false)} />}
     </main>
+  );
+}
+
+/** 회원탈퇴 확인: 접수되면 모든 기기에서 로그아웃되고 기록이 지워진다 */
+function WithdrawSheet({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const confirm = async () => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      await withdraw();
+      qc.clear();
+      writePrefs({ childProfileId: null });
+      navigate('/login', { replace: true });
+    } catch (error) {
+      setMessage(
+        error instanceof ApiError && error.status === 503
+          ? '지금은 탈퇴를 처리할 수 없어요. 잠시 후 다시 시도해 주세요.'
+          : error instanceof Error
+            ? error.message
+            : '탈퇴하지 못했어요. 다시 시도해 주세요.',
+      );
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className={styles.dim} onClick={busy ? undefined : onClose} role="presentation">
+      <section
+        className={styles.sheet}
+        role="alertdialog"
+        aria-modal="true"
+        aria-label="회원탈퇴"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className={styles.sheetTitle}>정말 탈퇴할까요?</h2>
+        <p className={styles.withdrawText}>
+          아이 프로필, 탐험 카드, 퀴즈·사진 기록이 모두 지워지고 되돌릴 수 없어요.
+        </p>
+        {message && (
+          <p className={styles.sheetMessage} role="alert">
+            {message}
+          </p>
+        )}
+        <button type="button" className={styles.save} onClick={confirm} disabled={busy}>
+          {busy ? '탈퇴하는 중…' : '탈퇴하기'}
+        </button>
+        <button type="button" className={styles.cancel} onClick={onClose} disabled={busy}>
+          취소
+        </button>
+      </section>
+    </div>
   );
 }
 
