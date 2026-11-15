@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import FlowScreen, { flow } from '../../components/FlowScreen';
 import LoadError from '../../components/LoadError';
@@ -17,12 +17,13 @@ import {
   useReportVisit,
   useRetryObservation,
   useUploadObservation,
+  usePrefetchQuiz,
   useVisit,
   type Visit,
   type Observation,
 } from '../../api/queries';
 import { ApiError } from '../../api/errors';
-import { carryLoadingProgress, useLoadingProgress } from '../../hooks/useLoadingProgress';
+import { useLoadingProgress } from '../../hooks/useLoadingProgress';
 import { arrivalMessage, useArrivalCheck } from '../../lib/geo';
 import { toIsoDate } from '../../lib/format';
 import { resumePath, visitPath } from '../../lib/quiz';
@@ -37,7 +38,7 @@ const GENERATION_EXPECTED_MS = 30_000;
 const GENERATION_FLOOR: Record<string, number> = {
   UPLOADED: 20,
   GENERATING: 35,
-  // 생성이 끝나도 방문 기록·퀴즈 불러오기가 남아 있어 100%는 다음 화면(에피소드 소개)에서 채운다
+  // 생성이 끝나도 방문 기록·퀴즈 불러오기가 남아 있다
   READY: 80,
 };
 
@@ -82,6 +83,9 @@ function PhotoFlow({ visitId }: { visitId: string }) {
   const [checkRoundAfterWait, setCheckRoundAfterWait] = useState(0);
   const [waitedTooLong, setWaitedTooLong] = useState(false);
   const [checkRound, setCheckRound] = useState(0);
+  /** 생성·방문 기록·퀴즈까지 다 받아 에피소드 소개로 넘어갈 방문 */
+  const [readyId, setReadyId] = useState<string | null>(null);
+  const prefetchQuiz = usePrefetchQuiz();
 
   const arrival = useArrivalCheck(place.data, checkRound);
 
@@ -113,15 +117,22 @@ function PhotoFlow({ visitId }: { visitId: string }) {
     observation.isError;
 
   // 서버 생성 단계에 맞춰 채운다: 사진 저장(UPLOADED) → AI 생성 중(GENERATING) → 끝(READY)
-  // 생성이 끝나면 100%로 채우지 않고 이어서 차오르다가, 에피소드 소개 화면의 로딩이 이어받는다
+  // 아래 return에서 로딩 화면을 띄우는 조건과 같다
+  const showLoading =
+    !visit.data ||
+    recovering ||
+    (!!observationId && !message && (!settled || generated));
+
+  // 생성이 끝나도 방문 기록과 퀴즈 3문제까지 받은 뒤에 100%를 채우고 넘어간다 (로딩을 한 번으로)
   const progress = useLoadingProgress(
-    !!observationId && settled && !generated,
+    !!readyId || (!!observationId && settled && !generated),
     observationId
       ? {
           floor: GENERATION_FLOOR[obs?.generationStatus ?? ''] ?? 0,
           expectedMs: generated ? 2500 : GENERATION_EXPECTED_MS,
+          active: showLoading,
         }
-      : undefined,
+      : { active: showLoading },
   );
 
   const photosRef = useRef(photos);
@@ -206,10 +217,13 @@ function PhotoFlow({ visitId }: { visitId: string }) {
   };
 
   const goQuiz = (id: string) => {
-    // 다음 화면 로딩이 처음부터 다시 차지 않게 지금 진행도를 넘긴다
-    carryLoadingProgress(progress);
     navigate(visitPath.episode(id), { replace: true });
   };
+
+  // 바가 100%가 되고 여우가 폴짝 뛴 다음 넘어간다 (다시 그려져도 타이머가 처음부터 돌지 않게 고정)
+  const finishLoading = useCallback(() => {
+    if (readyId) navigate(visitPath.episode(readyId), { replace: true });
+  }, [readyId, navigate]);
 
   const doneRef = useRef(false);
 
@@ -229,7 +243,11 @@ function PhotoFlow({ visitId }: { visitId: string }) {
     doneRef.current = true;
 
     ensureReported(v)
-      .then((current) => goQuiz(current.id))
+      .then(async (current) => {
+        // 에피소드 소개가 다시 로딩 화면을 띄우지 않게 퀴즈를 미리 받는다 (실패하면 그 화면에서 다시 받는다)
+        await prefetchQuiz(current.id).catch(() => undefined);
+        setReadyId(current.id);
+      })
       .catch((error: Error) => {
         fail(error);
       });
@@ -445,19 +463,12 @@ function PhotoFlow({ visitId }: { visitId: string }) {
     );
   }
 
-  if (
-    !v ||
-    recovering ||
-    (
-      observationId &&
-      !message &&
-      (!settled || generated)
-    )
-  ) {
+  if (showLoading) {
     return (
       <LoadingScreen
         type="quiz"
-        progress={progress}
+        progress={readyId ? 100 : progress}
+        onFinish={readyId ? finishLoading : undefined}
       />
     );
   }
