@@ -89,6 +89,7 @@ export default function MapPage() {
               onSelect={select}
               bottomInset={selected ? SHEET_HEIGHT : 0}
               legend
+              zoomControls
             />
           )}
           {selected && (
