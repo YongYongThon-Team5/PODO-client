@@ -64,7 +64,12 @@ export default function QuizIntro() {
   const error = visit.error ?? quiz.error;
 
   return (
-    <LoadingGate type="quiz" pending={visit.isPending || (!!visit.data && quiz.isPending)}>
+    <LoadingGate
+      type="quiz"
+      pending={visit.isPending || (!!visit.data && quiz.isPending)}
+      // 방문 정보 → 퀴즈 3문제 순서로 받으니, 방문 정보가 오면 절반
+      floor={visit.data ? 50 : 0}
+    >
       <FlowScreen
         title="에피소드 소개"
         onBack={() => navigate('/mission')}
