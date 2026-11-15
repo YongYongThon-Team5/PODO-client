@@ -28,9 +28,9 @@ const BOUNDS = { west: 127.015, east: 127.438, north: 37.374, south: 37.079 };
 const LON_K = Math.cos((((BOUNDS.north + BOUNDS.south) / 2) * Math.PI) / 180);
 const SCALE = (MAP_W - PAD_X * 2) / ((BOUNDS.east - BOUNDS.west) * LON_K);
 
-/** 확대 단계. 1배는 용인 전체가 화면 폭에 들어온다 */
+/** 확대 단계. 1배(처음)는 용인 전체가 화면에 들어온다 */
 const ZOOMS = [1, 1.6, 2.4, 3.2];
-const DEFAULT_ZOOM = 1.6;
+const DEFAULT_ZOOM = 1;
 /** 이 거리(px) 안에 다른 장소가 있으면 눌렀을 때 목록으로 고른다 */
 const NEAR_PX = 18;
 

@@ -8,6 +8,8 @@
 .viewport {
   position: absolute;
   inset: 0;
+  /* 지도가 화면보다 작으면 가운데, 크면 끌어서 본다 */
+  display: flex;
   overflow: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -15,7 +17,8 @@
 
 .canvas {
   position: relative;
-  margin: 0 auto;
+  flex: none;
+  margin: auto;
   background-repeat: no-repeat;
   background-position: 0 0;
 }
