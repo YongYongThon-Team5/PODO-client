@@ -22,7 +22,7 @@ import {
   type Observation,
 } from '../../api/queries';
 import { ApiError } from '../../api/errors';
-import { useLoadingProgress } from '../../hooks/useLoadingProgress';
+import { carryLoadingProgress, useLoadingProgress } from '../../hooks/useLoadingProgress';
 import { arrivalMessage, useArrivalCheck } from '../../lib/geo';
 import { toIsoDate } from '../../lib/format';
 import { resumePath, visitPath } from '../../lib/quiz';
@@ -37,6 +37,8 @@ const GENERATION_EXPECTED_MS = 30_000;
 const GENERATION_FLOOR: Record<string, number> = {
   UPLOADED: 20,
   GENERATING: 35,
+  // 생성이 끝나도 방문 기록·퀴즈 불러오기가 남아 있어 100%는 다음 화면(에피소드 소개)에서 채운다
+  READY: 80,
 };
 
 type Photo = {
@@ -111,12 +113,13 @@ function PhotoFlow({ visitId }: { visitId: string }) {
     observation.isError;
 
   // 서버 생성 단계에 맞춰 채운다: 사진 저장(UPLOADED) → AI 생성 중(GENERATING) → 끝(READY)
+  // 생성이 끝나면 100%로 채우지 않고 이어서 차오르다가, 에피소드 소개 화면의 로딩이 이어받는다
   const progress = useLoadingProgress(
-    !!observationId && settled,
+    !!observationId && settled && !generated,
     observationId
       ? {
           floor: GENERATION_FLOOR[obs?.generationStatus ?? ''] ?? 0,
-          expectedMs: GENERATION_EXPECTED_MS,
+          expectedMs: generated ? 2500 : GENERATION_EXPECTED_MS,
         }
       : undefined,
   );
@@ -203,6 +206,8 @@ function PhotoFlow({ visitId }: { visitId: string }) {
   };
 
   const goQuiz = (id: string) => {
+    // 다음 화면 로딩이 처음부터 다시 차지 않게 지금 진행도를 넘긴다
+    carryLoadingProgress(progress);
     navigate(visitPath.episode(id), { replace: true });
   };
 
@@ -452,7 +457,7 @@ function PhotoFlow({ visitId }: { visitId: string }) {
     return (
       <LoadingScreen
         type="quiz"
-        progress={generated ? 100 : progress}
+        progress={progress}
       />
     );
   }
