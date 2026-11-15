@@ -372,3 +372,19 @@
 .save:disabled {
   opacity: 0.45;
 }
+
+/* 회원탈퇴 확인 */
+.withdrawText {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-gray-500);
+}
+
+.cancel {
+  width: 100%;
+  height: 48px;
+  margin-top: 8px;
+  font-size: 15px;
+  color: #999999;
+}
