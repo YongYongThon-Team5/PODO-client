@@ -31,6 +31,13 @@ import styles from './VisitPhotos.module.css';
 const MAX_PHOTOS = 3;
 /** 사진 AI 퀴즈 생성을 로딩 화면으로 기다리는 최대 시간. 서버 Gemini 대기(90초)보다 조금 길게 둔다 */
 const GENERATION_WAIT_MS = 100_000;
+/** AI 생성은 보통 이 정도 걸린다고 보고 로딩 바를 채운다 */
+const GENERATION_EXPECTED_MS = 30_000;
+/** 생성 단계별 로딩 바 시작점 */
+const GENERATION_FLOOR: Record<string, number> = {
+  UPLOADED: 20,
+  GENERATING: 35,
+};
 
 type Photo = {
   url: string;
@@ -103,8 +110,15 @@ function PhotoFlow({ visitId }: { visitId: string }) {
     waitedTooLong ||
     observation.isError;
 
+  // 서버 생성 단계에 맞춰 채운다: 사진 저장(UPLOADED) → AI 생성 중(GENERATING) → 끝(READY)
   const progress = useLoadingProgress(
     !!observationId && settled,
+    observationId
+      ? {
+          floor: GENERATION_FLOOR[obs?.generationStatus ?? ''] ?? 0,
+          expectedMs: GENERATION_EXPECTED_MS,
+        }
+      : undefined,
   );
 
   const photosRef = useRef(photos);
