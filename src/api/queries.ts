@@ -385,19 +385,27 @@ export function useReportVisit() {
   });
 }
 
+const fetchQuiz = async (visitId: string) =>
+  unwrap(
+    await api.GET('/api/visits/{visitId}/quiz', {
+      params: { path: { visitId } },
+    }),
+  );
+
 export function useQuiz(visitId: string | undefined) {
   const auth = useAuth();
 
   return useQuery({
     queryKey: quizKey(visitId ?? ''),
-    queryFn: async () =>
-      unwrap(
-        await api.GET('/api/visits/{visitId}/quiz', {
-          params: { path: { visitId: visitId! } },
-        }),
-      ),
+    queryFn: () => fetchQuiz(visitId!),
     enabled: !!visitId && auth.status === 'signedIn',
   });
+}
+
+/** 다음 화면(에피소드 소개)이 로딩 없이 바로 열리도록 퀴즈를 미리 받아 둔다 */
+export function usePrefetchQuiz() {
+  const qc = useQueryClient();
+  return (visitId: string) => qc.fetchQuery({ queryKey: quizKey(visitId), queryFn: () => fetchQuiz(visitId) });
 }
 
 /* ── 관찰 사진 ── */
