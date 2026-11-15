@@ -8,6 +8,8 @@
 .viewport {
   position: absolute;
   inset: 0;
+  /* 지도가 화면보다 작으면 가운데, 크면 끌어서 본다 */
+  display: flex;
   overflow: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -15,9 +17,9 @@
 
 .canvas {
   position: relative;
-  margin: 0 auto;
+  flex: none;
+  margin: auto;
   background-repeat: no-repeat;
-  background-size: 402px 774px;
   background-position: 0 0;
 }
 
@@ -131,4 +133,88 @@
 
 .legendTodo {
   color: #6b7280;
+}
+
+/* 이름표가 옆 장소 점을 가려 눌리지 않는 일이 없게, 누르는 건 점으로만 */
+.tag {
+  pointer-events: none;
+}
+
+/* 겹친 장소 고르기: 누른 자리 위에 뜨는 작은 목록 */
+.near {
+  position: absolute;
+  z-index: 10;
+  transform: translate(-50%, calc(-100% - 18px));
+  min-width: 160px;
+  max-width: 220px;
+  padding: 10px 10px 8px;
+  border: 1px solid #d5dae0;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.near p {
+  margin: 0 0 6px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.near ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.near button {
+  display: block;
+  width: 100%;
+  padding: 8px 6px;
+  border-radius: 6px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4f2c02;
+}
+
+.near li + li button {
+  border-top: 1px solid #f1f2f4;
+}
+
+.near_done {
+  color: #6a3a93 !important;
+}
+
+.near_planned {
+  color: #ff903d !important;
+}
+
+/* 확대·축소: 범례 아래 오른쪽 */
+.zoom {
+  position: absolute;
+  top: 110px;
+  right: 20px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #d5dae0;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.zoom button {
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  line-height: 1;
+  color: #4f2c02;
+}
+
+.zoom button + button {
+  border-top: 1px solid #d5dae0;
+}
+
+.zoom button:disabled {
+  color: #c9cdd2;
 }

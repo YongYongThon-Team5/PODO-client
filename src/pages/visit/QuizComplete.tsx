@@ -93,6 +93,7 @@ export default function QuizComplete() {
               className={styles.map}
               markers={[{ id: p.id, name: p.name, latitude: p.latitude, longitude: p.longitude, kind: 'done' }]}
               focusId={p.id}
+              initialZoom={1.6}
             />
           ) : (
             <div className={styles.map} aria-hidden />
