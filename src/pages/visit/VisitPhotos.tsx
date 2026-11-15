@@ -29,7 +29,8 @@ import { resumePath, visitPath } from '../../lib/quiz';
 import styles from './VisitPhotos.module.css';
 
 const MAX_PHOTOS = 3;
-const GENERATION_WAIT_MS = 45_000;
+/** 사진 AI 퀴즈 생성을 로딩 화면으로 기다리는 최대 시간. 서버 Gemini 대기(90초)보다 조금 길게 둔다 */
+const GENERATION_WAIT_MS = 100_000;
 
 type Photo = {
   url: string;
